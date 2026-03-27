@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>割引計算</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background: #f5f5f3;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 48px;
+}
+
+header {
+  width: 100%;
+  background: #1a1a1a;
+  color: #fff;
+  padding: 24px 20px 18px;
+  text-align: center;
+}
+header h1 { font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+header p  { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 4px; }
+
+.card {
+  width: 100%;
+  max-width: 480px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 20px;
+  margin: 20px 16px 0;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+}
+
+.field { margin-bottom: 20px; }
+.field:last-child { margin-bottom: 0; }
+
+.field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #999;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.input-wrap { position: relative; }
+
+.input-wrap input[type="number"] {
+  width: 100%;
+  padding: 14px 52px 14px 16px;
+  font-size: 22px;
+  font-weight: 700;
+  border: 2px solid #ebebeb;
+  border-radius: 12px;
+  outline: none;
+  background: #fafaf8;
+  color: #1a1a1a;
+  transition: border-color 0.15s;
+  -moz-appearance: textfield;
+}
+.input-wrap input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+.input-wrap input[type="number"]:focus { border-color: #1a1a1a; background: #fff; }
+
+.unit {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  font-weight: 700;
+  color: #bbb;
+  pointer-events: none;
+}
+
+/* クイック割引ボタン */
+.quick-btns {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.q-btn {
+  flex: 1;
+  min-width: 48px;
+  padding: 8px 4px;
+  font-size: 13px;
+  font-weight: 700;
+  border: 2px solid #ebebeb;
+  border-radius: 8px;
+  background: #fafaf8;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.q-btn:hover { border-color: #1a1a1a; color: #1a1a1a; }
+.q-btn.active { border-color: #1a1a1a; background: #1a1a1a; color: #fff; }
+
+/* 結果カード */
+.result-card {
+  display: none;
+  width: 100%;
+  max-width: 480px;
+  background: #1a1a1a;
+  border-radius: 16px;
+  padding: 28px 20px;
+  margin: 12px 16px 0;
+  text-align: center;
+}
+.result-card.show { display: block; }
+
+.result-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.result-price {
+  font-size: 52px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -2px;
+  line-height: 1;
+}
+.result-yen {
+  font-size: 22px;
+  color: rgba(255,255,255,0.55);
+  margin-left: 4px;
+}
+
+.divider {
+  width: 40px;
+  height: 1px;
+  background: rgba(255,255,255,0.15);
+  margin: 20px auto;
+}
+
+.sub-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.sub-row:last-child { border-bottom: none; }
+.sub-key {
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+}
+.sub-val {
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.85);
+}
+.sub-val.discount { color: #f87171; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>割引計算</h1>
+  <p>元の金額と割引率を入力してください</p>
+</header>
+
+<div class="card">
+  <div class="field">
+    <label for="price">元の金額</label>
+    <div class="input-wrap">
+      <input type="number" id="price" min="0" inputmode="numeric" placeholder="10000">
+      <span class="unit">円</span>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="rate">割引率</label>
+    <div class="input-wrap">
+      <input type="number" id="rate" min="0" max="100" step="1" inputmode="numeric" placeholder="20">
+      <span class="unit">%</span>
+    </div>
+    <div class="quick-btns">
+      <button class="q-btn" onclick="setRate(5)">5%</button>
+      <button class="q-btn" onclick="setRate(10)">10%</button>
+      <button class="q-btn" onclick="setRate(20)">20%</button>
+      <button class="q-btn" onclick="setRate(30)">30%</button>
+      <button class="q-btn" onclick="setRate(50)">50%</button>
+      <button class="q-btn" onclick="setRate(70)">70%</button>
+    </div>
+  </div>
+</div>
+
+<div class="result-card" id="result">
+  <div class="result-label">割引後の金額</div>
+  <div>
+    <span class="result-price" id="afterPrice"></span><span class="result-yen">円</span>
+  </div>
+  <div class="divider"></div>
+  <div class="sub-row">
+    <span class="sub-key">元の金額</span>
+    <span class="sub-val" id="origPrice"></span>
+  </div>
+  <div class="sub-row">
+    <span class="sub-key">割引額</span>
+    <span class="sub-val discount" id="discountAmt"></span>
+  </div>
+  <div class="sub-row">
+    <span class="sub-key">割引率</span>
+    <span class="sub-val" id="discountRate"></span>
+  </div>
+</div>
+
+<script>
+const KEY = 'waribiki_v1';
+
+function setRate(v) {
+  document.getElementById('rate').value = v;
+  updateQuickBtns(v);
+  calculate();
+}
+
+function updateQuickBtns(v) {
+  document.querySelectorAll('.q-btn').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.textContent) === v);
+  });
+}
+
+function calculate() {
+  const price = parseFloat(document.getElementById('price').value);
+  const rate  = parseFloat(document.getElementById('rate').value);
+
+  if (!price || price <= 0 || isNaN(rate) || rate < 0 || rate > 100) {
+    document.getElementById('result').classList.remove('show');
+    return;
+  }
+
+  const discount = Math.round(price * rate / 100);
+  const after    = price - discount;
+
+  document.getElementById('afterPrice').textContent   = after.toLocaleString();
+  document.getElementById('origPrice').textContent    = price.toLocaleString() + '円';
+  document.getElementById('discountAmt').textContent  = '−' + discount.toLocaleString() + '円';
+  document.getElementById('discountRate').textContent = rate + '%OFF';
+  document.getElementById('result').classList.add('show');
+
+  updateQuickBtns(rate);
+  save();
+}
+
+function save() {
+  localStorage.setItem(KEY, JSON.stringify({
+    price: document.getElementById('price').value,
+    rate:  document.getElementById('rate').value,
+  }));
+}
+
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY) || '{}');
+    if (d.price) document.getElementById('price').value = d.price;
+    if (d.rate)  document.getElementById('rate').value  = d.rate;
+    if (d.price && d.rate) calculate();
+  } catch (e) {}
+}
+
+document.getElementById('price').addEventListener('input', calculate);
+document.getElementById('rate').addEventListener('input', () => {
+  updateQuickBtns(parseFloat(document.getElementById('rate').value));
+  calculate();
+});
+
+load();
+</script>
+</body>
+</html>
