@@ -192,9 +192,9 @@ function calculate() {
   const discount = Math.round(price * rate / 100);
   const after    = price - discount;
 
-  document.getElementById('afterPrice').textContent   = after.toLocaleString();
-  document.getElementById('origPrice').textContent    = price.toLocaleString() + '円';
-  document.getElementById('discountAmt').textContent  = '−' + discount.toLocaleString() + '円';
+  document.getElementById('afterPrice').textContent  = after.toLocaleString();
+  document.getElementById('origPrice').textContent   = price.toLocaleString() + '円';
+  document.getElementById('discountAmt').textContent = '−' + discount.toLocaleString() + '円';
   document.getElementById('discountRate').textContent = rate + '%OFF';
   document.getElementById('result').classList.add('show');
 
