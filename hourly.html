@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>時給計算</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background: #f5f5f3;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 48px;
+}
+
+header {
+  width: 100%;
+  background: #1a1a1a;
+  color: #fff;
+  padding: 24px 20px 18px;
+  text-align: center;
+}
+header h1 { font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+header p  { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 4px; }
+
+.card {
+  width: 100%;
+  max-width: 480px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 20px;
+  margin: 20px 16px 0;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+}
+
+.field { margin-bottom: 20px; }
+
+.field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #999;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.input-wrap {
+  position: relative;
+}
+
+.input-wrap input[type="number"] {
+  width: 100%;
+  padding: 14px 48px 14px 16px;
+  font-size: 22px;
+  font-weight: 700;
+  border: 2px solid #ebebeb;
+  border-radius: 12px;
+  outline: none;
+  background: #fafaf8;
+  color: #1a1a1a;
+  transition: border-color 0.15s;
+  -moz-appearance: textfield;
+}
+.input-wrap input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+.input-wrap input[type="number"]:focus { border-color: #1a1a1a; background: #fff; }
+
+.unit {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  font-weight: 700;
+  color: #bbb;
+  pointer-events: none;
+}
+
+.result-card {
+  display: none;
+  width: 100%;
+  max-width: 480px;
+  background: #1a1a1a;
+  border-radius: 16px;
+  padding: 28px 20px;
+  margin: 12px 16px 0;
+  text-align: center;
+}
+.result-card.show { display: block; }
+
+.result-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.result-amount {
+  font-size: 52px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -2px;
+  line-height: 1;
+}
+.result-unit {
+  font-size: 22px;
+  color: rgba(255,255,255,0.55);
+  margin-left: 4px;
+}
+
+.result-breakdown {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.breakdown-item {
+  background: rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 12px 10px;
+}
+.breakdown-item .b-label {
+  font-size: 10px;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.breakdown-item .b-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.85);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>時給計算</h1>
+  <p>時給・労働時間・日数から月収を計算</p>
+</header>
+
+<div class="card">
+  <div class="field">
+    <label for="wage">時給</label>
+    <div class="input-wrap">
+      <input type="number" id="wage" min="0" inputmode="numeric" placeholder="1100">
+      <span class="unit">円</span>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="hours">1日の労働時間</label>
+    <div class="input-wrap">
+      <input type="number" id="hours" min="0" max="24" step="0.5" inputmode="decimal" placeholder="8">
+      <span class="unit">時間</span>
+    </div>
+  </div>
+
+  <div class="field" style="margin-bottom:0">
+    <label for="days">月の勤務日数</label>
+    <div class="input-wrap">
+      <input type="number" id="days" min="0" max="31" inputmode="numeric" placeholder="20">
+      <span class="unit">日</span>
+    </div>
+  </div>
+</div>
+
+<div class="result-card" id="result">
+  <div class="result-label">月収（税引き前）</div>
+  <div>
+    <span class="result-amount" id="monthly"></span><span class="result-unit">円</span>
+  </div>
+  <div class="result-breakdown">
+    <div class="breakdown-item">
+      <div class="b-label">日給</div>
+      <div class="b-value" id="daily"></div>
+    </div>
+    <div class="breakdown-item">
+      <div class="b-label">週収（5日換算）</div>
+      <div class="b-value" id="weekly"></div>
+    </div>
+    <div class="breakdown-item">
+      <div class="b-label">年収（12ヶ月換算）</div>
+      <div class="b-value" id="yearly"></div>
+    </div>
+    <div class="breakdown-item">
+      <div class="b-label">月間労働時間</div>
+      <div class="b-value" id="totalHours"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY = 'jikyu_v1';
+
+function fmt(n) {
+  return Math.round(n).toLocaleString() + '円';
+}
+
+function calculate() {
+  const wage  = parseFloat(document.getElementById('wage').value);
+  const hours = parseFloat(document.getElementById('hours').value);
+  const days  = parseFloat(document.getElementById('days').value);
+
+  if (!wage || !hours || !days || wage <= 0 || hours <= 0 || days <= 0) {
+    document.getElementById('result').classList.remove('show');
+    return;
+  }
+
+  const daily   = wage * hours;
+  const monthly = daily * days;
+  const weekly  = daily * 5;
+  const yearly  = monthly * 12;
+  const totalH  = hours * days;
+
+  document.getElementById('monthly').textContent    = Math.round(monthly).toLocaleString();
+  document.getElementById('daily').textContent      = fmt(daily);
+  document.getElementById('weekly').textContent     = fmt(weekly);
+  document.getElementById('yearly').textContent     = fmt(yearly);
+  document.getElementById('totalHours').textContent = totalH + '時間';
+
+  document.getElementById('result').classList.add('show');
+  save();
+}
+
+function save() {
+  localStorage.setItem(KEY, JSON.stringify({
+    wage:  document.getElementById('wage').value,
+    hours: document.getElementById('hours').value,
+    days:  document.getElementById('days').value,
+  }));
+}
+
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY) || '{}');
+    if (d.wage)  document.getElementById('wage').value  = d.wage;
+    if (d.hours) document.getElementById('hours').value = d.hours;
+    if (d.days)  document.getElementById('days').value  = d.days;
+    if (d.wage && d.hours && d.days) calculate();
+  } catch (e) {}
+}
+
+['wage', 'hours', 'days'].forEach(id =>
+  document.getElementById(id).addEventListener('input', calculate)
+);
+
+load();
+</script>
+</body>
+</html>
