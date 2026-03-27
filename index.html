@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>割り勘計算</title>
+<title>割引計算</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -38,6 +38,7 @@ header p  { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 4px; }
 }
 
 .field { margin-bottom: 20px; }
+.field:last-child { margin-bottom: 0; }
 
 .field label {
   display: block;
@@ -49,9 +50,11 @@ header p  { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 4px; }
   margin-bottom: 8px;
 }
 
-.field input[type="number"] {
+.input-wrap { position: relative; }
+
+.input-wrap input[type="number"] {
   width: 100%;
-  padding: 14px 16px;
+  padding: 14px 52px 14px 16px;
   font-size: 22px;
   font-weight: 700;
   border: 2px solid #ebebeb;
@@ -62,62 +65,19 @@ header p  { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 4px; }
   transition: border-color 0.15s;
   -moz-appearance: textfield;
 }
-.field input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
-.field input[type="number"]:focus { border-color: #1a1a1a; background: #fff; }
+.input-wrap input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+.input-wrap input[type="number"]:focus { border-color: #1a1a1a; background: #fff; }
 
-.round-label {
-  font-size: 11px;
+.unit {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 1.5px;
-  color: #999;
-  text-transform: uppercase;
-  margin-bottom: 10px;
+  color: #bbb;
+  pointer-events: none;
 }
-
-.rounding {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 24px;
-}
-.rounding input[type="radio"] { display: none; }
-.rounding label {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 13px 4px;
-  border: 2px solid #ebebeb;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #aaa;
-  cursor: pointer;
-  background: #fafaf8;
-  transition: all 0.15s;
-  text-align: center;
-  line-height: 1.3;
-}
-.rounding input[type="radio"]:checked + label {
-  border-color: #1a1a1a;
-  background: #1a1a1a;
-  color: #fff;
-}
-
-.calc-btn {
-  width: 100%;
-  background: #1a1a1a;
-  color: #fff;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 700;
-  padding: 16px;
-  cursor: pointer;
-  letter-spacing: 1px;
-  transition: opacity 0.15s, transform 0.1s;
-}
-.calc-btn:hover  { opacity: 0.85; }
-.calc-btn:active { transform: scale(0.98); }
 
 .result-card {
   display: none;
@@ -137,167 +97,130 @@ header p  { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 4px; }
   letter-spacing: 2px;
   color: rgba(255,255,255,0.4);
   text-transform: uppercase;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
-.result-amount {
+.result-price {
   font-size: 52px;
   font-weight: 700;
   color: #fff;
   letter-spacing: -2px;
   line-height: 1;
 }
-.result-unit {
+.result-yen {
   font-size: 22px;
   color: rgba(255,255,255,0.55);
   margin-left: 4px;
 }
-.result-detail {
-  margin-top: 14px;
-  font-size: 12px;
-  color: rgba(255,255,255,0.35);
-  line-height: 1.6;
+
+.divider {
+  width: 40px;
+  height: 1px;
+  background: rgba(255,255,255,0.15);
+  margin: 20px auto;
 }
 
-.error-msg {
-  display: none;
-  color: #e53e3e;
-  font-size: 12px;
-  font-weight: 700;
-  margin-top: 6px;
+.sub-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
 }
-.error-msg.show { display: block; }
+.sub-row:last-child { border-bottom: none; }
+.sub-key { font-size: 12px; color: rgba(255,255,255,0.4); }
+.sub-val { font-size: 16px; font-weight: 700; color: rgba(255,255,255,0.85); }
+.sub-val.discount { color: #f87171; }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>割り勘計算</h1>
-  <p>人数と合計金額を入力してください</p>
+  <h1>割引計算</h1>
+  <p>元の金額と割引率を入力してください</p>
 </header>
 
 <div class="card">
+  <div class="field">
+    <label for="price">元の金額</label>
+    <div class="input-wrap">
+      <input type="number" id="price" min="0" inputmode="numeric" placeholder="10000">
+      <span class="unit">円</span>
+    </div>
+  </div>
 
   <div class="field">
-    <label for="people">人数</label>
-    <input type="number" id="people" min="1" value="2" inputmode="numeric" placeholder="2">
-    <div class="error-msg" id="err-people">1人以上の人数を入力してください</div>
-  </div>
-
-  <div class="field">
-    <label for="total">合計金額（円）</label>
-    <input type="number" id="total" min="0" inputmode="numeric" placeholder="5000">
-    <div class="error-msg" id="err-total">合計金額を入力してください</div>
-  </div>
-
-  <div class="round-label">端数処理</div>
-  <div class="rounding">
-    <div>
-      <input type="radio" name="round" id="r-ceil"  value="ceil">
-      <label for="r-ceil">切り上げ</label>
-    </div>
-    <div>
-      <input type="radio" name="round" id="r-round" value="round" checked>
-      <label for="r-round">四捨五入</label>
-    </div>
-    <div>
-      <input type="radio" name="round" id="r-floor" value="floor">
-      <label for="r-floor">切り捨て</label>
+    <label for="rate">割引率</label>
+    <div class="input-wrap">
+      <input type="number" id="rate" min="0" max="100" step="1" inputmode="numeric" placeholder="20">
+      <span class="unit">%</span>
     </div>
   </div>
-
-  <button class="calc-btn" onclick="calculate()">計算する</button>
 </div>
 
 <div class="result-card" id="result">
-  <div class="result-label">1人あたり</div>
+  <div class="result-label">割引後の金額</div>
   <div>
-    <span class="result-amount" id="perPerson"></span><span class="result-unit">円</span>
+    <span class="result-price" id="afterPrice"></span><span class="result-yen">円</span>
   </div>
-  <div class="result-detail" id="resultDetail"></div>
+  <div class="divider"></div>
+  <div class="sub-row">
+    <span class="sub-key">元の金額</span>
+    <span class="sub-val" id="origPrice"></span>
+  </div>
+  <div class="sub-row">
+    <span class="sub-key">割引額</span>
+    <span class="sub-val discount" id="discountAmt"></span>
+  </div>
+  <div class="sub-row">
+    <span class="sub-key">割引率</span>
+    <span class="sub-val" id="discountRate"></span>
+  </div>
 </div>
 
 <script>
-const KEY = 'warikan_v1';
-
-function saveState() {
-  const people = document.getElementById('people').value;
-  const total  = document.getElementById('total').value;
-  const round  = document.querySelector('input[name="round"]:checked').value;
-  localStorage.setItem(KEY, JSON.stringify({ people, total, round }));
-}
-
-function loadState() {
-  try {
-    const d = JSON.parse(localStorage.getItem(KEY) || '{}');
-    if (d.people) document.getElementById('people').value = d.people;
-    if (d.total)  document.getElementById('total').value  = d.total;
-    if (d.round) {
-      const el = document.getElementById('r-' + d.round);
-      if (el) el.checked = true;
-    }
-    if (d.people && d.total) calculate();
-  } catch (e) {}
-}
-
-function validate() {
-  const people = parseInt(document.getElementById('people').value, 10);
-  const total  = document.getElementById('total').value;
-  let ok = true;
-
-  if (!people || people < 1 || isNaN(people)) {
-    document.getElementById('err-people').classList.add('show');
-    ok = false;
-  } else {
-    document.getElementById('err-people').classList.remove('show');
-  }
-
-  if (total === '' || total === null) {
-    document.getElementById('err-total').classList.add('show');
-    ok = false;
-  } else {
-    document.getElementById('err-total').classList.remove('show');
-  }
-
-  return ok;
-}
+const KEY = 'waribiki_v1';
 
 function calculate() {
-  if (!validate()) {
+  const price = parseFloat(document.getElementById('price').value);
+  const rate  = parseFloat(document.getElementById('rate').value);
+
+  if (!price || price <= 0 || isNaN(rate) || rate < 0 || rate > 100) {
     document.getElementById('result').classList.remove('show');
     return;
   }
 
-  const people = parseInt(document.getElementById('people').value, 10);
-  const total  = parseInt(document.getElementById('total').value, 10);
-  const round  = document.querySelector('input[name="round"]:checked').value;
+  const discount = Math.round(price * rate / 100);
+  const after    = price - discount;
 
-  const raw = total / people;
-  let per;
-  if      (round === 'ceil')  per = Math.ceil(raw);
-  else if (round === 'floor') per = Math.floor(raw);
-  else                        per = Math.round(raw);
-
-  const label   = { ceil: '切り上げ', round: '四捨五入', floor: '切り捨て' }[round];
-  const collect = per * people;
-  const diff    = collect - total;
-  const diffStr = diff === 0
-    ? `${people}人でちょうど割り切れます`
-    : `集金合計 ${collect.toLocaleString()}円（${diff > 0 ? '+' : ''}${diff}円の誤差） · ${label}`;
-
-  document.getElementById('perPerson').textContent  = per.toLocaleString();
-  document.getElementById('resultDetail').textContent = diffStr;
+  document.getElementById('afterPrice').textContent   = after.toLocaleString();
+  document.getElementById('origPrice').textContent    = price.toLocaleString() + '円';
+  document.getElementById('discountAmt').textContent  = '−' + discount.toLocaleString() + '円';
+  document.getElementById('discountRate').textContent = rate + '%OFF';
   document.getElementById('result').classList.add('show');
 
-  saveState();
+  save();
 }
 
-document.getElementById('people').addEventListener('input', calculate);
-document.getElementById('total').addEventListener('input',  calculate);
-document.querySelectorAll('input[name="round"]').forEach(el =>
-  el.addEventListener('change', calculate)
-);
+function save() {
+  localStorage.setItem(KEY, JSON.stringify({
+    price: document.getElementById('price').value,
+    rate:  document.getElementById('rate').value,
+  }));
+}
 
-loadState();
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY) || '{}');
+    if (d.price) document.getElementById('price').value = d.price;
+    if (d.rate)  document.getElementById('rate').value  = d.rate;
+    if (d.price && d.rate) calculate();
+  } catch (e) {}
+}
+
+document.getElementById('price').addEventListener('input', calculate);
+document.getElementById('rate').addEventListener('input', calculate);
+
+load();
 </script>
 </body>
 </html>
