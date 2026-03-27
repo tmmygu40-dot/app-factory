@@ -1,10 +1,532 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>テスト</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>月の支出集計アプリ</title>
+<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fafaf8;
+  --surface: #ffffff;
+  --border: #ebebeb;
+  --ink: #1a1a1a;
+  --ink2: #555;
+  --muted: #aaa;
+  --shadow: 0 2px 16px rgba(0,0,0,0.07);
+
+  --c1: #3b82f6; --c1l: #eff6ff;
+  --c2: #f59e0b; --c2l: #fffbeb;
+  --c3: #ec4899; --c3l: #fdf2f8;
+  --c4: #10b981; --c4l: #ecfdf5;
+  --c5: #8b5cf6; --c5l: #f5f3ff;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Noto Sans JP', sans-serif;
+  min-height: 100vh;
+  padding-bottom: 60px;
+}
+
+.header {
+  background: var(--ink);
+  color: #fff;
+  padding: 20px 20px 18px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.header h1 {
+  font-family: 'Klee One', cursive;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.month-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.45);
+  margin-top: 3px;
+  font-family: 'DM Mono', monospace;
+}
+
+.total-display {
+  text-align: right;
+}
+
+.total-label {
+  font-size: 10px;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 2px;
+  margin-bottom: 2px;
+}
+
+.total-amount {
+  font-family: 'DM Mono', monospace;
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+.reset-btn {
+  width: 100%;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  color: rgba(255,255,255,0.6);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 12px;
+  padding: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.reset-btn:hover { background: rgba(255,255,255,0.14); color: #fff; }
+
+.section { padding: 20px 16px 0; }
+
+.section-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.input-card {
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+}
+
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.cat-btn {
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  padding: 8px 4px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+
+.cat-btn .cat-icon { font-size: 18px; display: block; margin-bottom: 3px; }
+.cat-btn .cat-name { font-size: 10px; color: var(--muted); font-weight: 700; }
+
+.cat-btn.sel-0 { border-color: var(--c1); background: var(--c1l); }
+.cat-btn.sel-1 { border-color: var(--c2); background: var(--c2l); }
+.cat-btn.sel-2 { border-color: var(--c3); background: var(--c3l); }
+.cat-btn.sel-3 { border-color: var(--c4); background: var(--c4l); }
+.cat-btn.sel-4 { border-color: var(--c5); background: var(--c5l); }
+
+.input-row {
+  display: grid;
+  grid-template-columns: 1fr 110px;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.input-row input {
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--bg);
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+  -moz-appearance: textfield;
+}
+.input-row input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.input-row input:focus { border-color: var(--ink); background: #fff; }
+
+.add-btn {
+  width: 100%;
+  background: var(--ink);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 13px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.add-btn:hover { opacity: 0.85; }
+.add-btn:active { transform: scale(0.98); }
+
+.cats-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.cat-summary-row {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow);
+}
+
+.cat-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cat-summary-name {
+  font-size: 13px;
+  font-weight: 700;
+  flex: 1;
+}
+
+.cat-summary-count {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.cat-summary-amt {
+  font-family: 'DM Mono', monospace;
+  font-size: 15px;
+  font-weight: 400;
+}
+
+.bar-wrap {
+  height: 3px;
+  background: var(--border);
+  border-radius: 99px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+.entries-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.entry-item {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 13px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.entry-cat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.entry-info { flex: 1; min-width: 0; }
+
+.entry-name {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.entry-cat-label {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.entry-amount {
+  font-family: 'DM Mono', monospace;
+  font-size: 15px;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.del-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.del-btn:hover { border-color: #ef4444; color: #ef4444; }
+
+.empty-state {
+  text-align: center;
+  padding: 32px 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.empty-state .empty-icon { font-size: 36px; margin-bottom: 10px; }
+
+.io-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.io-btn {
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.7);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  text-align: center;
+}
+.io-btn:hover { background: rgba(255,255,255,0.16); color: #fff; }
+
+#importFile { display: none; }
+</style>
 </head>
 <body>
-  <h1>成功🔥アプリ動いてる</h1>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1>支出メモ</h1>
+      <div class="month-label" id="monthLabel"></div>
+    </div>
+    <div class="total-display">
+      <div class="total-label">今月の合計</div>
+      <div class="total-amount" id="totalAmt">¥0</div>
+    </div>
+  </div>
+  <button class="reset-btn" onclick="resetAll()">🗑 全リセット</button>
+  <div class="io-row">
+    <button class="io-btn" onclick="exportData()">💾 データを保存</button>
+    <button class="io-btn" onclick="document.getElementById('importFile').click()">📂 データを読み込み</button>
+  </div>
+  <input type="file" id="importFile" accept=".json" onchange="importData(event)">
+</div>
+
+<div class="section">
+  <div class="section-title">支出を追加</div>
+  <div class="input-card">
+    <div class="cat-grid" id="catGrid"></div>
+    <div class="input-row">
+      <input type="text" id="itemName" placeholder="項目名（例：スーパー）" maxlength="30">
+      <input type="number" id="itemAmount" placeholder="金額" min="0">
+    </div>
+    <button class="add-btn" onclick="addEntry()">＋ 追加する</button>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">カテゴリ別集計</div>
+  <div class="cats-summary" id="catsSummary"></div>
+</div>
+
+<div class="section">
+  <div class="section-title">明細一覧</div>
+  <div class="entries-list" id="entriesList"></div>
+</div>
+
+<script>
+const CATS = [
+  { name: '食費',   icon: '🍱', color: '#3b82f6', light: '#eff6ff', cls: 'sel-0' },
+  { name: '交通費', icon: '🚃', color: '#f59e0b', light: '#fffbeb', cls: 'sel-1' },
+  { name: '娯楽',   icon: '🎮', color: '#ec4899', light: '#fdf2f8', cls: 'sel-2' },
+  { name: '光熱費', icon: '💡', color: '#10b981', light: '#ecfdf5', cls: 'sel-3' },
+  { name: 'その他', icon: '📦', color: '#8b5cf6', light: '#f5f3ff', cls: 'sel-4' },
+];
+
+let selectedCat = 0;
+let entries = JSON.parse(localStorage.getItem('expenses') || '[]');
+
+function save() {
+  localStorage.setItem('expenses', JSON.stringify(entries));
+}
+
+function fmt(n) {
+  return '¥' + n.toLocaleString();
+}
+
+function initCatGrid() {
+  const grid = document.getElementById('catGrid');
+  grid.innerHTML = '';
+  CATS.forEach((c, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn' + (i === selectedCat ? ' ' + c.cls : '');
+    btn.innerHTML = `<span class="cat-icon">${c.icon}</span><span class="cat-name">${c.name}</span>`;
+    btn.onclick = () => { selectedCat = i; initCatGrid(); };
+    grid.appendChild(btn);
+  });
+}
+
+function addEntry() {
+  const name = document.getElementById('itemName').value.trim();
+  const amount = parseFloat(document.getElementById('itemAmount').value);
+  if (!name || !amount || amount <= 0) {
+    document.getElementById(name ? 'itemAmount' : 'itemName').focus();
+    return;
+  }
+  entries.unshift({ id: Date.now(), cat: selectedCat, name, amount });
+  save();
+  document.getElementById('itemName').value = '';
+  document.getElementById('itemAmount').value = '';
+  render();
+}
+
+function deleteEntry(id) {
+  entries = entries.filter(e => e.id !== id);
+  save();
+  render();
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(entries, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'expense_data.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!Array.isArray(data)) throw new Error();
+      entries = data;
+      save();
+      render();
+      alert(`${entries.length}件のデータを読み込みました。`);
+    } catch {
+      alert('読み込みに失敗しました。正しいJSONファイルを選択してください。');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function resetAll() {
+  if (!confirm('全データをリセットしますか？')) return;
+  entries = [];
+  save();
+  render();
+}
+
+function render() {
+  const total = entries.reduce((s, e) => s + e.amount, 0);
+  document.getElementById('totalAmt').textContent = fmt(total);
+
+  const summary = document.getElementById('catsSummary');
+  summary.innerHTML = '';
+  CATS.forEach((c, i) => {
+    const catEntries = entries.filter(e => e.cat === i);
+    const catTotal = catEntries.reduce((s, e) => s + e.amount, 0);
+    const pct = total > 0 ? (catTotal / total * 100) : 0;
+    const row = document.createElement('div');
+    row.className = 'cat-summary-row';
+    row.innerHTML = `
+      <div class="cat-dot" style="background:${c.color}"></div>
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span class="cat-summary-name">${c.icon} ${c.name}</span>
+          <span class="cat-summary-count">${catEntries.length}件</span>
+          <span class="cat-summary-amt">${fmt(catTotal)}</span>
+        </div>
+        <div class="bar-wrap">
+          <div class="bar-fill" style="width:${pct}%;background:${c.color}"></div>
+        </div>
+      </div>
+    `;
+    summary.appendChild(row);
+  });
+
+  const list = document.getElementById('entriesList');
+  if (entries.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>まだ支出がありません</div>`;
+    return;
+  }
+  list.innerHTML = '';
+  entries.forEach(e => {
+    const c = CATS[e.cat];
+    const item = document.createElement('div');
+    item.className = 'entry-item';
+    item.innerHTML = `
+      <div class="entry-cat-dot" style="background:${c.color}"></div>
+      <div class="entry-info">
+        <div class="entry-name">${e.name}</div>
+        <div class="entry-cat-label">${c.icon} ${c.name}</div>
+      </div>
+      <div class="entry-amount">${fmt(e.amount)}</div>
+      <button class="del-btn" onclick="deleteEntry(${e.id})">×</button>
+    `;
+    list.appendChild(item);
+  });
+}
+
+const now = new Date();
+document.getElementById('monthLabel').textContent =
+  `${now.getFullYear()}年${now.getMonth()+1}月`;
+
+initCatGrid();
+render();
+</script>
 </body>
 </html>
