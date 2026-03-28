@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>車ローン毎月返済シミュレーター</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+    min-height: 100vh;
+  }
+  .container { width: 100%; max-width: 480px; }
+  header {
+    background: #1a1a1a;
+    color: #fff;
+    text-align: center;
+    padding: 22px 16px 18px;
+    border-radius: 12px 12px 0 0;
+  }
+  header .emoji { font-size: 2rem; display: block; margin-bottom: 6px; }
+  header h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: 0.04em; }
+  header p { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
+  .card {
+    background: #fff;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .field label { font-size: 0.8rem; color: #555; margin-bottom: 5px; display: block; }
+  .field .sublabel { font-size: 0.72rem; color: #aaa; margin-bottom: 5px; display: block; }
+  input[type="number"] {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+  }
+  input[type="number"]:focus { border-color: #1a1a1a; }
+  .loan-preview {
+    background: #f7f7f7;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    color: #555;
+    display: none;
+  }
+  .loan-preview.show { display: block; }
+  .loan-preview span { font-weight: 700; color: #1a1a1a; }
+  .btn-calc {
+    width: 100%;
+    padding: 15px;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .btn-calc:active { opacity: 0.8; }
+  .btn-reset {
+    width: 100%;
+    padding: 11px;
+    background: #fff;
+    color: #888;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .btn-reset:active { background: #f5f5f5; }
+  .error-msg {
+    background: #fff0f0;
+    color: #c0392b;
+    font-size: 0.82rem;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #f5c6c6;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+  .result {
+    background: #1a1a1a;
+    color: #fff;
+    padding: 20px 16px;
+    border-radius: 0 0 12px 12px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .result.show { display: flex; }
+  .result-hero {
+    background: #2a2a2a;
+    border-radius: 10px;
+    padding: 20px 14px;
+    text-align: center;
+  }
+  .result-hero-label { font-size: 0.75rem; color: #aaa; margin-bottom: 6px; }
+  .result-hero-value { font-size: 2.2rem; font-weight: 700; color: #fff; }
+  .result-hero-sub { font-size: 0.78rem; color: #aaa; margin-top: 6px; }
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .result-cell {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .result-cell-label { font-size: 0.7rem; color: #aaa; margin-bottom: 4px; }
+  .result-cell-value { font-size: 1.05rem; font-weight: 700; color: #fff; }
+  .result-comment {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 13px 14px;
+    font-size: 0.82rem;
+    color: #ccc;
+    line-height: 1.7;
+  }
+  .result-comment .comment-label { font-size: 0.7rem; color: #aaa; margin-bottom: 4px; }
+  .result-comment .comment-text { color: #fff; font-weight: 600; }
+  .notice {
+    font-size: 0.72rem;
+    color: #666;
+    line-height: 1.6;
+    border-top: 1px solid #333;
+    padding-top: 10px;
+  }
+  .back { display: block; text-align: center; margin-top: 16px; font-size: 0.85rem; color: #888; text-decoration: none; }
+  .back:hover { color: #333; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <span class="emoji">🚗</span>
+    <h1>車ローン毎月返済シミュレーター</h1>
+    <p>車両価格・頭金・金利から月々の返済額を試算</p>
+  </header>
+
+  <div class="card">
+    <div class="field">
+      <label>車の価格（円）</label>
+      <input type="number" id="carPrice" inputmode="numeric" placeholder="例：3000000" oninput="updateLoanPreview()">
+    </div>
+    <div class="field">
+      <label>頭金（円）</label>
+      <span class="sublabel">0円の場合は0を入力してください</span>
+      <input type="number" id="downPayment" inputmode="numeric" placeholder="例：500000" oninput="updateLoanPreview()">
+    </div>
+    <div class="loan-preview" id="loanPreview">
+      借入額の目安：<span id="loanPreviewValue">―</span>
+    </div>
+    <div class="field">
+      <label>年利（%）</label>
+      <input type="number" id="rate" inputmode="decimal" placeholder="例：2.9">
+    </div>
+    <div class="field">
+      <label>返済年数（年）</label>
+      <input type="number" id="years" inputmode="numeric" placeholder="例：5">
+    </div>
+    <div class="field">
+      <label>ボーナス返済額（円）<span style="color:#aaa;font-weight:400;">　任意</span></label>
+      <span class="sublabel">年2回分の合計額を入力（例：200000）</span>
+      <input type="number" id="bonus" inputmode="numeric" placeholder="例：200000">
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+    <button class="btn-calc" onclick="calculate()">計算する</button>
+    <button class="btn-reset" onclick="resetAll()">リセット</button>
+  </div>
+
+  <div class="result" id="result">
+    <div class="result-hero">
+      <div class="result-hero-label">毎月返済額</div>
+      <div class="result-hero-value" id="monthlyPayment"></div>
+      <div class="result-hero-sub" id="heroSub"></div>
+    </div>
+    <div class="result-grid">
+      <div class="result-cell">
+        <div class="result-cell-label">借入額</div>
+        <div class="result-cell-value" id="loanAmount"></div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">総返済額</div>
+        <div class="result-cell-value" id="totalPayment"></div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">利息合計</div>
+        <div class="result-cell-value" id="totalInterest"></div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">返済期間</div>
+        <div class="result-cell-value" id="yearsDisp"></div>
+      </div>
+    </div>
+    <div class="result-comment">
+      <div class="comment-label">頭金の効果</div>
+      <div class="comment-text" id="commentText"></div>
+    </div>
+    <div class="notice">
+      ※ これは一般向けの簡易シミュレーションです。実際の返済額は手数料・保険・残価設定などにより異なります。正式な条件は販売店・金融機関でご確認ください。
+    </div>
+  </div>
+
+  <a class="back" href="index.html">← アプリ一覧に戻る</a>
+</div>
+
+<script>
+  function fmt(n) { return Math.round(n).toLocaleString() + ' 円'; }
+
+  function updateLoanPreview() {
+    const price = parseFloat(document.getElementById('carPrice').value);
+    const down  = parseFloat(document.getElementById('downPayment').value) || 0;
+    const preview = document.getElementById('loanPreview');
+    const previewVal = document.getElementById('loanPreviewValue');
+    if (!isNaN(price) && price > 0) {
+      const loan = Math.max(0, price - down);
+      previewVal.textContent = loan.toLocaleString() + ' 円';
+      preview.classList.add('show');
+    } else {
+      preview.classList.remove('show');
+    }
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+  function hideError() { document.getElementById('errorMsg').classList.remove('show'); }
+
+  function calculate() {
+    hideError();
+    const carPrice   = parseFloat(document.getElementById('carPrice').value);
+    const downPayment= parseFloat(document.getElementById('downPayment').value) || 0;
+    const rate       = parseFloat(document.getElementById('rate').value);
+    const years      = parseFloat(document.getElementById('years').value);
+    const bonus      = parseFloat(document.getElementById('bonus').value) || 0;
+
+    if (isNaN(carPrice)  || carPrice <= 0)  { showError('車の価格を正しく入力してください'); return; }
+    if (downPayment < 0)                    { showError('頭金は0円以上で入力してください'); return; }
+    if (downPayment >= carPrice)            { showError('頭金が車の価格以上です。正しく入力してください'); return; }
+    if (isNaN(rate)      || rate <= 0)      { showError('年利を正しく入力してください'); return; }
+    if (isNaN(years)     || years <= 0)     { showError('返済年数を正しく入力してください'); return; }
+    if (bonus < 0)                          { showError('ボーナス返済額は0以上で入力してください'); return; }
+
+    const P = carPrice - downPayment;
+    const r = rate / 100 / 12;
+    const n = years * 12;
+
+    let monthly;
+    if (r === 0) {
+      monthly = P / n;
+    } else {
+      monthly = P * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+    }
+
+    const bonusTotal  = bonus * years;
+    const totalPayment= Math.round(monthly) * n + bonusTotal;
+    const totalInterest = totalPayment - P;
+
+    document.getElementById('monthlyPayment').textContent = fmt(monthly);
+    document.getElementById('heroSub').textContent =
+      '年利 ' + rate + '% / ' + years + '年（' + n + '回払い）' +
+      (bonus > 0 ? ' ＋ボーナス' : '');
+    document.getElementById('loanAmount').textContent    = fmt(P);
+    document.getElementById('totalPayment').textContent  = fmt(totalPayment);
+    document.getElementById('totalInterest').textContent = fmt(totalInterest);
+    document.getElementById('yearsDisp').textContent     = years + ' 年';
+
+    let comment;
+    const downRatio = Math.round(downPayment / carPrice * 100);
+    if (downPayment === 0) {
+      comment = '頭金なしのフルローンです。頭金を入れることで借入額が減り、毎月の返済額と利息を大幅に抑えられます。';
+    } else if (downRatio < 20) {
+      comment = '頭金 ' + downRatio + '% のプランです。頭金を20%以上にすると月々の負担と総利息をさらに減らせます。';
+    } else if (downRatio < 40) {
+      comment = '頭金 ' + downRatio + '% は標準的なプランです。バランスよく頭金を入れられています。';
+    } else {
+      comment = '頭金 ' + downRatio + '% とかなり多めに入れています。月々の返済が軽くなり、利息負担も最小限です。';
+    }
+    document.getElementById('commentText').textContent = comment;
+
+    document.getElementById('result').classList.add('show');
+  }
+
+  function resetAll() {
+    ['carPrice', 'downPayment', 'rate', 'years', 'bonus'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('loanPreview').classList.remove('show');
+    document.getElementById('result').classList.remove('show');
+    hideError();
+  }
+</script>
+</body>
+</html>
