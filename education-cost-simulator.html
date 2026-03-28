@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>教育費シミュレーター</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+    min-height: 100vh;
+  }
+  .container { width: 100%; max-width: 480px; }
+  header {
+    background: #1a1a1a;
+    color: #fff;
+    text-align: center;
+    padding: 22px 16px 18px;
+    border-radius: 12px 12px 0 0;
+  }
+  header .emoji { font-size: 2rem; display: block; margin-bottom: 6px; }
+  header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: 0.04em; }
+  header p { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
+  .card {
+    background: #fff;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .field label { font-size: 0.8rem; color: #555; margin-bottom: 5px; display: block; }
+  .field .sublabel { font-size: 0.72rem; color: #aaa; margin-bottom: 6px; display: block; }
+  input[type="number"] {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+  }
+  input[type="number"]:focus { border-color: #1a1a1a; }
+  .select-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .select-grid button {
+    width: 100%;
+    padding: 12px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    color: #555;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+    line-height: 1.4;
+  }
+  .select-grid button.active {
+    border-color: #1a1a1a;
+    background: #1a1a1a;
+    color: #fff;
+  }
+  .select-row {
+    display: flex;
+    gap: 8px;
+  }
+  .select-row button {
+    flex: 1;
+    padding: 11px 4px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .select-row button.active {
+    border-color: #1a1a1a;
+    background: #1a1a1a;
+    color: #fff;
+  }
+  .btn-calc {
+    width: 100%;
+    padding: 15px;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .btn-calc:active { opacity: 0.8; }
+  .btn-reset {
+    width: 100%;
+    padding: 11px;
+    background: #fff;
+    color: #888;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .btn-reset:active { background: #f5f5f5; }
+  .error-msg {
+    background: #fff0f0;
+    color: #c0392b;
+    font-size: 0.82rem;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #f5c6c6;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+  .result {
+    background: #1a1a1a;
+    color: #fff;
+    padding: 20px 16px;
+    border-radius: 0 0 12px 12px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .result.show { display: flex; }
+  .result-hero {
+    background: #2a2a2a;
+    border-radius: 10px;
+    padding: 20px 14px;
+    text-align: center;
+  }
+  .result-hero-label { font-size: 0.75rem; color: #aaa; margin-bottom: 6px; }
+  .result-hero-value { font-size: 2.2rem; font-weight: 700; color: #fff; line-height: 1.2; }
+  .result-hero-sub { font-size: 0.78rem; color: #aaa; margin-top: 8px; }
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .result-cell {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .result-cell-label { font-size: 0.7rem; color: #aaa; margin-bottom: 4px; }
+  .result-cell-value { font-size: 1.05rem; font-weight: 700; color: #fff; }
+  .result-breakdown {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 13px 14px;
+  }
+  .breakdown-label { font-size: 0.7rem; color: #aaa; margin-bottom: 10px; }
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.82rem;
+    color: #ccc;
+    padding: 4px 0;
+    border-bottom: 1px solid #333;
+  }
+  .breakdown-row:last-child { border-bottom: none; }
+  .breakdown-row span { color: #fff; font-weight: 600; }
+  .result-comment {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 13px 14px;
+    font-size: 0.82rem;
+    color: #ccc;
+    line-height: 1.7;
+  }
+  .result-comment .comment-label { font-size: 0.7rem; color: #aaa; margin-bottom: 4px; }
+  .result-comment .comment-text { color: #fff; font-weight: 600; }
+  .notice {
+    font-size: 0.72rem;
+    color: #666;
+    line-height: 1.6;
+    border-top: 1px solid #333;
+    padding-top: 10px;
+  }
+  .back { display: block; text-align: center; margin-top: 16px; font-size: 0.85rem; color: #888; text-decoration: none; }
+  .back:hover { color: #333; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <span class="emoji">🎓</span>
+    <h1>教育費シミュレーター</h1>
+    <p>幼稚園〜大学までの総教育費を試算</p>
+  </header>
+
+  <div class="card">
+    <div class="field">
+      <label>子どもの人数</label>
+      <input type="number" id="children" inputmode="numeric" placeholder="例：2" min="1">
+    </div>
+
+    <div class="field">
+      <label>進路タイプ</label>
+      <div class="select-grid" id="pathGroup">
+        <button onclick="selectPath(this,'public')" class="active">🏫 全部公立　約800万円 / 人</button>
+        <button onclick="selectPath(this,'mixed')">🏫🏛️ 高校まで公立 ＋ 大学は私立　約950万円 / 人</button>
+        <button onclick="selectPath(this,'private')">🏛️ 全部私立　約2,200万円 / 人</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>大学の年数</label>
+      <div class="select-row" id="uniYearsGroup">
+        <button onclick="selectUniYears(this, 4)" class="active">4年制</button>
+        <button onclick="selectUniYears(this, 6)">6年制（医歯薬等）</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>仕送り月額（円）<span style="color:#aaa;font-weight:400;">　任意</span></label>
+      <span class="sublabel">大学在学中の仕送り（0円の場合は空欄のままでもOK）</span>
+      <input type="number" id="remittance" inputmode="numeric" placeholder="例：80000">
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+    <button class="btn-calc" onclick="calculate()">計算する</button>
+    <button class="btn-reset" onclick="resetAll()">リセット</button>
+  </div>
+
+  <div class="result" id="result">
+    <div class="result-hero">
+      <div class="result-hero-label">総教育費の目安</div>
+      <div class="result-hero-value" id="grandTotal"></div>
+      <div class="result-hero-sub" id="heroSub"></div>
+    </div>
+    <div class="result-grid">
+      <div class="result-cell">
+        <div class="result-cell-label">学費合計</div>
+        <div class="result-cell-value" id="tuitionTotal"></div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">仕送り合計</div>
+        <div class="result-cell-value" id="remittanceTotal"></div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">1人あたり</div>
+        <div class="result-cell-value" id="perChild"></div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">子どもの人数</div>
+        <div class="result-cell-value" id="childrenDisp"></div>
+      </div>
+    </div>
+    <div class="result-breakdown">
+      <div class="breakdown-label">学費内訳（1人あたり目安）</div>
+      <div class="breakdown-row">幼稚園（3年） <span id="bKinder"></span></div>
+      <div class="breakdown-row">小学校（6年） <span id="bElem"></span></div>
+      <div class="breakdown-row">中学校（3年） <span id="bMid"></span></div>
+      <div class="breakdown-row">高校（3年）   <span id="bHigh"></span></div>
+      <div class="breakdown-row">大学          <span id="bUni"></span></div>
+    </div>
+    <div class="result-comment">
+      <div class="comment-label">ひとこと</div>
+      <div class="comment-text" id="commentText"></div>
+    </div>
+    <div class="notice">
+      ※ 文部科学省の調査データをもとにした簡易試算です。実際の費用は学校・地域・習い事・塾代などにより大きく変わります。目安としてご参考ください。
+    </div>
+  </div>
+
+  <a class="back" href="index.html">← アプリ一覧に戻る</a>
+</div>
+
+<script>
+  let selectedPath     = 'public';
+  let selectedUniYears = 4;
+
+  // 学費目安（万円）: [幼稚園, 小学校, 中学校, 高校, 大学4年, 大学6年]
+  const COSTS = {
+    public:  { kinder: 65, elem: 193, mid: 153, high: 137, uni4: 243, uni6: 363 },
+    mixed:   { kinder: 65, elem: 193, mid: 153, high: 137, uni4: 398, uni6: 598 },
+    private: { kinder: 158, elem: 959, mid: 422, high: 290, uni4: 398, uni6: 598 }
+  };
+
+  function selectPath(btn, path) {
+    selectedPath = path;
+    document.querySelectorAll('#pathGroup button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function selectUniYears(btn, years) {
+    selectedUniYears = years;
+    document.querySelectorAll('#uniYearsGroup button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function fmtMan(man) {
+    const oku = Math.floor(man / 100);
+    const rem = Math.round(man % 100);
+    if (oku > 0) return oku + '億' + (rem > 0 ? rem + '万' : '') + '円';
+    return Math.round(man) + '万円';
+  }
+  function fmtYen(man) {
+    return Math.round(man * 10000).toLocaleString() + ' 円';
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+  function hideError() { document.getElementById('errorMsg').classList.remove('show'); }
+
+  function calculate() {
+    hideError();
+    const children    = parseFloat(document.getElementById('children').value);
+    const remittance  = parseFloat(document.getElementById('remittance').value) || 0;
+
+    if (isNaN(children) || children < 1 || !Number.isInteger(children)) {
+      showError('子どもの人数を1人以上の整数で入力してください'); return;
+    }
+    if (remittance < 0) {
+      showError('仕送り月額は0以上で入力してください'); return;
+    }
+
+    const c = COSTS[selectedPath];
+    const uniCost = selectedUniYears === 4 ? c.uni4 : c.uni6;
+    const tuitionPerChild = c.kinder + c.elem + c.mid + c.high + uniCost;
+    const remittancePerChild = remittance * 12 * selectedUniYears / 10000;
+    const totalPerChild = tuitionPerChild + remittancePerChild;
+    const tuitionAll   = tuitionPerChild * children;
+    const remittanceAll= remittancePerChild * children;
+    const grandTotal   = totalPerChild * children;
+
+    const pathNames = { public: '全公立', mixed: '公立＋私立大', private: '全私立' };
+
+    document.getElementById('grandTotal').textContent    = fmtMan(grandTotal);
+    document.getElementById('heroSub').textContent       =
+      children + '人 / ' + pathNames[selectedPath] + ' / 大学' + selectedUniYears + '年' +
+      (remittance > 0 ? ' / 仕送り' + remittance.toLocaleString() + '円/月' : '');
+    document.getElementById('tuitionTotal').textContent   = fmtMan(tuitionAll);
+    document.getElementById('remittanceTotal').textContent= remittanceAll > 0 ? fmtMan(remittanceAll) : '―';
+    document.getElementById('perChild').textContent       = fmtMan(totalPerChild);
+    document.getElementById('childrenDisp').textContent   = children + ' 人';
+
+    document.getElementById('bKinder').textContent = fmtYen(c.kinder);
+    document.getElementById('bElem').textContent   = fmtYen(c.elem);
+    document.getElementById('bMid').textContent    = fmtYen(c.mid);
+    document.getElementById('bHigh').textContent   = fmtYen(c.high);
+    document.getElementById('bUni').textContent    = fmtYen(uniCost) + '（' + selectedUniYears + '年）';
+
+    let comment;
+    if (grandTotal < 1000) {
+      comment = '比較的コストを抑えた教育プランです。公立中心で堅実な家計管理ができます。';
+    } else if (grandTotal < 2000) {
+      comment = '標準的な教育費水準です。大学費用に備えた積立計画を早めに立てると安心です。';
+    } else if (grandTotal < 4000) {
+      comment = '教育費の負担はかなり大きくなります。学資保険やNISAなどを活用した計画的な準備がおすすめです。';
+    } else {
+      comment = '総額' + Math.round(grandTotal) + '万円超の大きな投資です。長期的な資金計画を今すぐ立てましょう。';
+    }
+    document.getElementById('commentText').textContent = comment;
+    document.getElementById('result').classList.add('show');
+  }
+
+  function resetAll() {
+    document.getElementById('children').value    = '';
+    document.getElementById('remittance').value  = '';
+    selectedPath     = 'public';
+    selectedUniYears = 4;
+    document.querySelectorAll('#pathGroup button').forEach((b, i) => {
+      b.classList.toggle('active', i === 0);
+    });
+    document.querySelectorAll('#uniYearsGroup button').forEach((b, i) => {
+      b.classList.toggle('active', i === 0);
+    });
+    document.getElementById('result').classList.remove('show');
+    hideError();
+  }
+</script>
+</body>
+</html>
