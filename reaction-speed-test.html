@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>反応速度テスト</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+    min-height: 100vh;
+  }
+  .container { width: 100%; max-width: 480px; }
+  header {
+    background: #1a1a1a;
+    color: #fff;
+    text-align: center;
+    padding: 22px 16px 18px;
+    border-radius: 12px 12px 0 0;
+  }
+  header .emoji { font-size: 2rem; display: block; margin-bottom: 6px; }
+  header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: 0.04em; }
+  header p { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
+
+  .card {
+    background: #fff;
+    padding: 20px 16px 28px;
+    border-radius: 0 0 12px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  /* スコア */
+  .score-row {
+    display: flex;
+    gap: 20px;
+    text-align: center;
+    width: 100%;
+    justify-content: center;
+  }
+  .score-item-label { font-size: 0.7rem; color: #aaa; margin-bottom: 2px; }
+  .score-item-value { font-size: 1.15rem; font-weight: 700; color: #1a1a1a; }
+
+  /* メインゾーン */
+  .zone {
+    width: 100%;
+    border-radius: 16px;
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: background 0.1s;
+    gap: 12px;
+    padding: 24px;
+  }
+  .zone.state-idle    { background: #2a2a2a; }
+  .zone.state-waiting { background: #c0392b; }
+  .zone.state-go      { background: #27ae60; }
+  .zone.state-result  { background: #2a2a2a; }
+  .zone.state-foul    { background: #e67e22; }
+
+  .zone-icon  { font-size: 3rem; }
+  .zone-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+    text-align: center;
+    line-height: 1.3;
+  }
+  .zone-sub {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.6);
+    text-align: center;
+  }
+  .zone-result-ms {
+    font-size: 4rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+    letter-spacing: -2px;
+  }
+  .zone-result-unit {
+    font-size: 1.2rem;
+    font-weight: 400;
+    color: rgba(255,255,255,0.6);
+    margin-left: 4px;
+  }
+  .zone-eval {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    margin-top: 4px;
+  }
+
+  /* ベスト */
+  .best-row {
+    width: 100%;
+    background: #f7f7f7;
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .best-label { font-size: 0.78rem; color: #aaa; }
+  .best-value { font-size: 1.1rem; font-weight: 700; color: #1a1a1a; }
+
+  /* 履歴 */
+  .history-wrap {
+    width: 100%;
+  }
+  .history-label { font-size: 0.72rem; color: #aaa; margin-bottom: 6px; }
+  .history-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .history-chip {
+    background: #f0f0f0;
+    border-radius: 99px;
+    padding: 4px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #555;
+  }
+  .history-chip.best { background: #fff3cd; color: #856404; }
+
+  .btn-reset {
+    width: 100%;
+    padding: 11px;
+    background: #fff;
+    color: #888;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .btn-reset:active { background: #f5f5f5; }
+
+  .back { display: block; text-align: center; margin-top: 16px; font-size: 0.85rem; color: #888; text-decoration: none; }
+  .back:hover { color: #333; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <span class="emoji">⚡</span>
+    <h1>反応速度テスト</h1>
+    <p>緑に変わった瞬間にタップ！</p>
+  </header>
+
+  <div class="card">
+    <div class="score-row">
+      <div>
+        <div class="score-item-label">挑戦回数</div>
+        <div class="score-item-value" id="tryCount">0</div>
+      </div>
+      <div>
+        <div class="score-item-label">平均</div>
+        <div class="score-item-value" id="avgMs">―</div>
+      </div>
+      <div>
+        <div class="score-item-label">ベスト</div>
+        <div class="score-item-value" id="bestMs">―</div>
+      </div>
+    </div>
+
+    <!-- メインゾーン -->
+    <div class="zone state-idle" id="zone" onclick="onZoneTap()">
+      <div class="zone-icon" id="zoneIcon">👆</div>
+      <div class="zone-title" id="zoneTitle">タップしてスタート</div>
+      <div class="zone-sub" id="zoneSub">緑に変わったら即タップ！</div>
+    </div>
+
+    <div class="best-row" id="bestRow" style="display:none">
+      <span class="best-label">🏆 ベストタイム</span>
+      <span class="best-value" id="bestRowVal">―</span>
+    </div>
+
+    <div class="history-wrap" id="historyWrap" style="display:none">
+      <div class="history-label">直近の記録</div>
+      <div class="history-list" id="historyList"></div>
+    </div>
+
+    <button class="btn-reset" onclick="resetAll()">記録をリセット</button>
+  </div>
+
+  <a class="back" href="index.html">← アプリ一覧に戻る</a>
+</div>
+
+<script>
+  const STATES = { IDLE: 'idle', WAITING: 'waiting', GO: 'go', RESULT: 'result', FOUL: 'foul' };
+  let state     = STATES.IDLE;
+  let goTime    = 0;
+  let waitTimer = null;
+  let results   = [];
+  let bestTime  = Infinity;
+
+  const zone      = document.getElementById('zone');
+  const zoneIcon  = document.getElementById('zoneIcon');
+  const zoneTitle = document.getElementById('zoneTitle');
+  const zoneSub   = document.getElementById('zoneSub');
+
+  function evalComment(ms) {
+    if (ms < 150) return '🚀 超人的！';
+    if (ms < 200) return '⚡ 爆速！';
+    if (ms < 250) return '🔥 かなり速い！';
+    if (ms < 300) return '👍 速い！';
+    if (ms < 350) return '😊 普通';
+    if (ms < 450) return '🙂 もう少し！';
+    return '😅 練習あるのみ！';
+  }
+
+  function setZone(st, icon, title, sub) {
+    state = st;
+    zone.className = 'zone state-' + st;
+    zoneIcon.textContent  = icon;
+    zoneTitle.innerHTML   = title;
+    zoneSub.textContent   = sub;
+    zoneSub.style.display = sub ? 'block' : 'none';
+  }
+
+  function onZoneTap() {
+    if (state === STATES.IDLE || state === STATES.RESULT || state === STATES.FOUL) {
+      startWaiting();
+    } else if (state === STATES.WAITING) {
+      foul();
+    } else if (state === STATES.GO) {
+      recordResult();
+    }
+  }
+
+  function startWaiting() {
+    if (waitTimer) clearTimeout(waitTimer);
+    setZone(STATES.WAITING, '🔴', '待て…', 'まだタップしないで！');
+    const delay = 1500 + Math.random() * 3500;
+    waitTimer = setTimeout(showGo, delay);
+  }
+
+  function showGo() {
+    goTime = performance.now();
+    setZone(STATES.GO, '🟢', 'いま！', '');
+  }
+
+  function foul() {
+    if (waitTimer) clearTimeout(waitTimer);
+    setZone(STATES.FOUL, '⚠️', 'フライング！', 'もう一度タップしてやり直し');
+  }
+
+  function recordResult() {
+    const ms = Math.round(performance.now() - goTime);
+    results.push(ms);
+    if (ms < bestTime) bestTime = ms;
+
+    const avg = Math.round(results.reduce((a,b)=>a+b,0) / results.length);
+    document.getElementById('tryCount').textContent = results.length;
+    document.getElementById('avgMs').textContent    = avg + 'ms';
+    document.getElementById('bestMs').textContent   = bestTime + 'ms';
+
+    // 結果表示
+    state = STATES.RESULT;
+    zone.className      = 'zone state-result';
+    zoneIcon.textContent = '';
+    zoneTitle.innerHTML =
+      '<span style="font-size:3.8rem;font-weight:700;letter-spacing:-2px">' + ms +
+      '</span><span style="font-size:1.2rem;font-weight:400;color:rgba(255,255,255,0.6)">ms</span>';
+    zoneSub.textContent  = evalComment(ms);
+    zoneSub.style.display = 'block';
+    zoneSub.style.fontSize = '1.1rem';
+    zoneSub.style.color    = '#fff';
+    zoneSub.style.fontWeight = '700';
+
+    updateHistory();
+
+    document.getElementById('bestRow').style.display    = 'flex';
+    document.getElementById('bestRowVal').textContent   = bestTime + 'ms';
+    document.getElementById('historyWrap').style.display = 'block';
+  }
+
+  function updateHistory() {
+    const list = document.getElementById('historyList');
+    list.innerHTML = '';
+    const recent = results.slice(-8).reverse();
+    recent.forEach((ms, i) => {
+      const chip = document.createElement('div');
+      const isBest = ms === bestTime && results.filter(r=>r===bestTime).length >= 1 && i === recent.indexOf(Math.min(...recent));
+      chip.className = 'history-chip' + (ms === bestTime ? ' best' : '');
+      chip.textContent = ms + 'ms';
+      list.appendChild(chip);
+    });
+  }
+
+  function resetAll() {
+    if (waitTimer) clearTimeout(waitTimer);
+    results  = [];
+    bestTime = Infinity;
+    document.getElementById('tryCount').textContent = '0';
+    document.getElementById('avgMs').textContent    = '―';
+    document.getElementById('bestMs').textContent   = '―';
+    document.getElementById('bestRow').style.display     = 'none';
+    document.getElementById('historyWrap').style.display = 'none';
+    zoneSub.style.fontSize   = '0.85rem';
+    zoneSub.style.color      = 'rgba(255,255,255,0.6)';
+    zoneSub.style.fontWeight = '400';
+    setZone(STATES.IDLE, '👆', 'タップしてスタート', '緑に変わったら即タップ！');
+  }
+</script>
+</body>
+</html>
