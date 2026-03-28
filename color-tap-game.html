@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>色タップ反応ゲーム</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+    min-height: 100vh;
+  }
+  .container { width: 100%; max-width: 480px; }
+  header {
+    background: #1a1a1a;
+    color: #fff;
+    text-align: center;
+    padding: 22px 16px 18px;
+    border-radius: 12px 12px 0 0;
+  }
+  header .emoji { font-size: 2rem; display: block; margin-bottom: 6px; }
+  header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: 0.04em; }
+  header p { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
+
+  .card {
+    background: #fff;
+    padding: 24px 16px 28px;
+    border-radius: 0 0 12px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    min-height: 460px;
+    justify-content: center;
+  }
+
+  /* ステージ */
+  .stage { width: 100%; display: none; flex-direction: column; align-items: center; gap: 20px; }
+  .stage.active { display: flex; }
+
+  /* 開始 */
+  .start-icon { font-size: 3.5rem; }
+  .start-title { font-size: 1.3rem; font-weight: 700; color: #1a1a1a; text-align: center; }
+  .start-desc  { font-size: 0.85rem; color: #888; text-align: center; line-height: 1.7; }
+  .difficulty-row { display: flex; gap: 8px; }
+  .difficulty-row button {
+    flex: 1;
+    padding: 10px 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    color: #888;
+    cursor: pointer;
+  }
+  .difficulty-row button.active {
+    border-color: #1a1a1a;
+    background: #1a1a1a;
+    color: #fff;
+  }
+
+  /* ゲーム中 */
+  .hud {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: #f7f7f7;
+    border-radius: 10px;
+  }
+  .hud-item-label { font-size: 0.7rem; color: #aaa; margin-bottom: 2px; }
+  .hud-item-value { font-size: 1.3rem; font-weight: 700; color: #1a1a1a; }
+  .hud-item-value.red { color: #e74c3c; }
+
+  .timer-bar-track {
+    width: 100%;
+    height: 8px;
+    background: #eee;
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .timer-bar-fill {
+    height: 100%;
+    background: #27ae60;
+    border-radius: 99px;
+    transition: width 0.1s linear, background 0.3s;
+  }
+
+  .instruction-box {
+    width: 100%;
+    background: #1a1a1a;
+    border-radius: 14px;
+    padding: 22px 16px;
+    text-align: center;
+  }
+  .instruction-label { font-size: 0.75rem; color: #aaa; margin-bottom: 8px; letter-spacing: 0.05em; }
+  .instruction-text  { font-size: 2.4rem; font-weight: 700; color: #fff; line-height: 1.2; }
+
+  .feedback {
+    font-size: 1.2rem;
+    font-weight: 700;
+    min-height: 28px;
+    text-align: center;
+  }
+  .feedback.correct { color: #27ae60; }
+  .feedback.wrong   { color: #e74c3c; }
+
+  .color-grid {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .color-btn {
+    padding: 28px 10px;
+    border: none;
+    border-radius: 14px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    transition: transform 0.08s, opacity 0.08s;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+  .color-btn:active { transform: scale(0.95); opacity: 0.85; }
+
+  /* 結果 */
+  .result-icon  { font-size: 3rem; }
+  .result-score {
+    font-size: 5rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    line-height: 1;
+    letter-spacing: -2px;
+  }
+  .result-score-unit { font-size: 1.2rem; color: #aaa; }
+  .result-stats {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .result-cell {
+    background: #f7f7f7;
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+  }
+  .result-cell-label { font-size: 0.7rem; color: #aaa; margin-bottom: 4px; }
+  .result-cell-value { font-size: 1.2rem; font-weight: 700; color: #1a1a1a; }
+  .result-comment { font-size: 0.95rem; color: #555; text-align: center; font-weight: 600; }
+
+  .btn-primary {
+    width: 100%;
+    padding: 15px;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .btn-primary:active { opacity: 0.8; }
+
+  .back { display: block; text-align: center; margin-top: 16px; font-size: 0.85rem; color: #888; text-decoration: none; }
+  .back:hover { color: #333; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <span class="emoji">🎨</span>
+    <h1>色タップ反応ゲーム</h1>
+    <p>指示された色をすばやくタップ！</p>
+  </header>
+
+  <div class="card">
+    <!-- 開始画面 -->
+    <div class="stage active" id="stageStart">
+      <div class="start-icon">🎯</div>
+      <div class="start-title">色タップ反応ゲーム</div>
+      <div class="start-desc">「〇〇を押せ！」と表示されます。<br>制限時間内に正しい色をタップしよう！</div>
+      <div class="difficulty-row" id="diffGroup">
+        <button onclick="setDiff(this,'easy')"   class="active">かんたん<br><small>15秒</small></button>
+        <button onclick="setDiff(this,'normal')">ふつう<br><small>10秒</small></button>
+        <button onclick="setDiff(this,'hard')">むずかしい<br><small>7秒</small></button>
+      </div>
+      <button class="btn-primary" onclick="startGame()">スタート</button>
+    </div>
+
+    <!-- ゲーム中 -->
+    <div class="stage" id="stageGame">
+      <div class="hud">
+        <div>
+          <div class="hud-item-label">スコア</div>
+          <div class="hud-item-value" id="scoreDisp">0</div>
+        </div>
+        <div style="text-align:center">
+          <div class="hud-item-label">ミス</div>
+          <div class="hud-item-value red" id="missDisp">0</div>
+        </div>
+        <div style="text-align:right">
+          <div class="hud-item-label">残り時間</div>
+          <div class="hud-item-value" id="timeDisp">10</div>
+        </div>
+      </div>
+      <div class="timer-bar-track">
+        <div class="timer-bar-fill" id="timerBar" style="width:100%"></div>
+      </div>
+      <div class="instruction-box">
+        <div class="instruction-label">この色をタップ！</div>
+        <div class="instruction-text" id="instructionText"></div>
+      </div>
+      <div class="feedback" id="feedback"></div>
+      <div class="color-grid" id="colorGrid"></div>
+    </div>
+
+    <!-- 結果画面 -->
+    <div class="stage" id="stageResult">
+      <div class="result-icon" id="resultIcon"></div>
+      <div>
+        <div style="text-align:center;font-size:0.85rem;color:#aaa;margin-bottom:6px">スコア</div>
+        <div class="result-score">
+          <span id="finalScore"></span><span class="result-score-unit"> 点</span>
+        </div>
+      </div>
+      <div class="result-stats">
+        <div class="result-cell">
+          <div class="result-cell-label">正解</div>
+          <div class="result-cell-value" id="finalCorrect"></div>
+        </div>
+        <div class="result-cell">
+          <div class="result-cell-label">ミス</div>
+          <div class="result-cell-value" id="finalMiss"></div>
+        </div>
+        <div class="result-cell">
+          <div class="result-cell-label">正解率</div>
+          <div class="result-cell-value" id="finalAccuracy"></div>
+        </div>
+        <div class="result-cell">
+          <div class="result-cell-label">難易度</div>
+          <div class="result-cell-value" id="finalDiff"></div>
+        </div>
+      </div>
+      <div class="result-comment" id="resultComment"></div>
+      <button class="btn-primary" onclick="goStart()">もう一回！</button>
+    </div>
+  </div>
+
+  <a class="back" href="index.html">← アプリ一覧に戻る</a>
+</div>
+
+<script>
+  const COLORS = [
+    { name: '赤',  bg: '#e74c3c', id: 'red'    },
+    { name: '青',  bg: '#3498db', id: 'blue'   },
+    { name: '緑',  bg: '#27ae60', id: 'green'  },
+    { name: '黄',  bg: '#f1c40f', id: 'yellow' },
+    { name: '紫',  bg: '#9b59b6', id: 'purple' },
+    { name: '橙',  bg: '#e67e22', id: 'orange' },
+  ];
+
+  const DIFF_SETTINGS = {
+    easy:   { time: 15, colorCount: 4, label: 'かんたん' },
+    normal: { time: 10, colorCount: 5, label: 'ふつう'   },
+    hard:   { time: 7,  colorCount: 6, label: 'むずかしい' },
+  };
+
+  let diff        = 'easy';
+  let score       = 0;
+  let miss        = 0;
+  let correct     = 0;
+  let timeLeft    = 10;
+  let totalTime   = 10;
+  let gameTimer   = null;
+  let target      = null;
+  let shownColors = [];
+  let feedbackTimer = null;
+
+  function setDiff(btn, d) {
+    diff = d;
+    document.querySelectorAll('#diffGroup button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function showStage(id) {
+    ['stageStart','stageGame','stageResult'].forEach(s => {
+      document.getElementById(s).classList.remove('active');
+    });
+    document.getElementById(id).classList.add('active');
+  }
+
+  function shuffle(arr) {
+    return [...arr].sort(() => Math.random() - 0.5);
+  }
+
+  function nextQuestion() {
+    const cfg = DIFF_SETTINGS[diff];
+    shownColors = shuffle(COLORS).slice(0, cfg.colorCount);
+    target = shownColors[Math.floor(Math.random() * shownColors.length)];
+
+    document.getElementById('instructionText').textContent = target.name + ' を押せ！';
+
+    const grid = document.getElementById('colorGrid');
+    grid.style.gridTemplateColumns = cfg.colorCount <= 4 ? '1fr 1fr' : '1fr 1fr 1fr';
+    grid.innerHTML = '';
+    shuffle(shownColors).forEach(c => {
+      const btn = document.createElement('button');
+      btn.className   = 'color-btn';
+      btn.style.background = c.bg;
+      btn.textContent = c.name;
+      btn.addEventListener('click', () => onTap(c));
+      grid.appendChild(btn);
+    });
+  }
+
+  function onTap(c) {
+    if (clearFeedback) clearTimeout(feedbackTimer);
+    const fb = document.getElementById('feedback');
+    if (c.id === target.id) {
+      score += 10;
+      correct++;
+      fb.className = 'feedback correct';
+      fb.textContent = '✅ ナイス！';
+    } else {
+      miss++;
+      fb.className = 'feedback wrong';
+      fb.textContent = '❌ 違う！';
+    }
+    document.getElementById('scoreDisp').textContent = score;
+    document.getElementById('missDisp').textContent  = miss;
+    feedbackTimer = setTimeout(() => { fb.textContent = ''; }, 500);
+    nextQuestion();
+  }
+
+  function startGame() {
+    const cfg = DIFF_SETTINGS[diff];
+    score    = 0;
+    miss     = 0;
+    correct  = 0;
+    timeLeft = cfg.time;
+    totalTime= cfg.time;
+    document.getElementById('scoreDisp').textContent = '0';
+    document.getElementById('missDisp').textContent  = '0';
+    document.getElementById('timeDisp').textContent  = timeLeft;
+    document.getElementById('timerBar').style.width  = '100%';
+    document.getElementById('timerBar').style.background = '#27ae60';
+    document.getElementById('feedback').textContent  = '';
+    showStage('stageGame');
+    nextQuestion();
+
+    if (gameTimer) clearInterval(gameTimer);
+    gameTimer = setInterval(() => {
+      timeLeft -= 0.1;
+      const pct = Math.max(0, timeLeft / totalTime * 100);
+      document.getElementById('timeDisp').textContent = Math.ceil(timeLeft);
+      document.getElementById('timerBar').style.width = pct + '%';
+      if (pct < 30) document.getElementById('timerBar').style.background = '#e74c3c';
+      else if (pct < 60) document.getElementById('timerBar').style.background = '#f1c40f';
+      if (timeLeft <= 0) {
+        clearInterval(gameTimer);
+        endGame();
+      }
+    }, 100);
+  }
+
+  function endGame() {
+    const cfg = DIFF_SETTINGS[diff];
+    const total = correct + miss;
+    const acc   = total > 0 ? Math.round(correct / total * 100) : 0;
+
+    document.getElementById('finalScore').textContent    = score;
+    document.getElementById('finalCorrect').textContent  = correct + '問';
+    document.getElementById('finalMiss').textContent     = miss + '回';
+    document.getElementById('finalAccuracy').textContent = acc + '%';
+    document.getElementById('finalDiff').textContent     = cfg.label;
+
+    let icon, comment;
+    if (score >= 150) { icon = '🏆'; comment = '圧倒的！反射神経が凄い！'; }
+    else if (score >= 100) { icon = '🥇'; comment = '素晴らしい！かなり速い！'; }
+    else if (score >= 70)  { icon = '🥈'; comment = 'なかなかいい感じ！'; }
+    else if (score >= 40)  { icon = '🥉'; comment = 'もう少し！練習あるのみ！'; }
+    else { icon = '💪'; comment = '次はもっとできる！'; }
+
+    document.getElementById('resultIcon').textContent    = icon;
+    document.getElementById('resultComment').textContent = comment;
+    showStage('stageResult');
+  }
+
+  function goStart() {
+    showStage('stageStart');
+  }
+</script>
+</body>
+</html>
