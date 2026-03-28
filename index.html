@@ -3,70 +3,213 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>アプリ一覧</title>
-  <!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>アプリ一覧</title>
+<title>計算ツール集</title>
 <style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    font-family: sans-serif;
-    background: #f5f5f5;
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: #f0f0f0;
+    min-height: 100vh;
     padding: 16px;
   }
-  .card {
-    display: block;
+  header {
+    background: #1a1a1a;
+    color: #fff;
+    text-align: center;
+    padding: 24px 16px 20px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+  }
+  header h1 { font-size: 1.3rem; font-weight: 700; letter-spacing: 0.05em; }
+  header p { font-size: 0.8rem; color: #aaa; margin-top: 6px; }
+  .list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  a.card {
+    display: flex;
+    align-items: center;
     background: #fff;
-    padding: 16px;
-    margin-bottom: 12px;
     border-radius: 10px;
+    padding: 14px 12px;
     text-decoration: none;
-    color: #000;
+    color: inherit;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    transition: background 0.15s;
+  }
+  a.card:active { background: #f5f5f5; }
+  .icon {
+    font-size: 1.6rem;
+    width: 44px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .text {
+    flex: 1;
+    padding: 0 10px;
+  }
+  .title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 2px;
+  }
+  .desc {
+    font-size: 0.75rem;
+    color: #888;
+  }
+  .arrow {
+    font-size: 0.9rem;
+    color: #ccc;
+    flex-shrink: 0;
   }
 </style>
 </head>
 <body>
+<header>
+  <h1>📱 計算ツール集</h1>
+  <p>かんたん・シンプルな計算アプリ一覧</p>
+</header>
 
-<h1>アプリ一覧</h1>
-
-<a class="card" href="discount.html">割引計算</a>
-<a class="card" href="hourly.html">時給計算</a>
-<a class="card" href="warikan.html">割り勘</a>
-<a class="card" href="tax.html">消費税</a>
-<a class="card" href="net.html">手取り</a>
-<a class="card" href="loan.html">ローン</a>
-
-</body>
-</html>
-<style>
-  body {
-    font-family: sans-serif;
-    background: #f5f5f5;
-    padding: 16px;
-  }
-  .card {
-    display: block;
-    background: #fff;
-    padding: 16px;
-    margin-bottom: 12px;
-    border-radius: 10px;
-    text-decoration: none;
-    color: #000;
-  }
-</style>
-</head>
-<body>
-
-<h1>アプリ一覧</h1>
-
-<a class="card" href="discount.html">割引計算</a>
-<a class="card" href="hourly.html">時給計算</a>
-<a class="card" href="warikan.html">割り勘</a>
-<a class="card" href="tax.html">消費税</a>
-<a class="card" href="net.html">手取り</a>
-<a class="card" href="loan.html">ローン</a>
-
+<div class="list">
+  <a class="card" href="discount.html">
+    <div class="icon">🏷️</div>
+    <div class="text"><div class="title">割引計算</div><div class="desc">元の金額と割引率から計算</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="hourly.html">
+    <div class="icon">⏱️</div>
+    <div class="text"><div class="title">時給計算</div><div class="desc">時給・労働時間・日数から月収を計算</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="warikan.html">
+    <div class="icon">👥</div>
+    <div class="text"><div class="title">割り勘</div><div class="desc">支払額を人数で割る</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="tax.html">
+    <div class="icon">🧾</div>
+    <div class="text"><div class="title">消費税</div><div class="desc">税込・税抜を計算</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="net.html">
+    <div class="icon">💴</div>
+    <div class="text"><div class="title">手取り</div><div class="desc">手取り額を計算</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="loan.html">
+    <div class="icon">🏠</div>
+    <div class="text"><div class="title">ローン</div><div class="desc">毎月返済額を計算</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="annual-hourly.html">
+    <div class="icon">💰</div>
+    <div class="text"><div class="title">年収→時給</div><div class="desc">年収から時給を計算</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="percentage.html">
+    <div class="icon">📊</div>
+    <div class="text"><div class="title">割合計算</div><div class="desc">数値から割合を計算</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="percent-change.html">
+    <div class="icon">📈</div>
+    <div class="text"><div class="title">増減率計算</div><div class="desc">数値の増減を％で計算</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="tax-reverse.html">
+    <div class="icon">💸</div>
+    <div class="text"><div class="title">税込→税抜</div><div class="desc">税込価格から税抜を計算</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="yield.html">
+    <div class="icon">📈</div>
+    <div class="text"><div class="title">利回り計算</div><div class="desc">投資金額から利回りを計算</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="days.html">
+    <div class="icon">📅</div>
+    <div class="text"><div class="title">日数カウント</div><div class="desc">2つの日付の差を計算</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="compound.html">
+    <div class="icon">📊</div>
+    <div class="text"><div class="title">複利計算</div><div class="desc">資産の増え方をシミュレーション</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="loan-limit.html">
+    <div class="icon">🏦</div>
+    <div class="text"><div class="title">借入可能額</div><div class="desc">借りられる金額を計算</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="overtime.html">
+    <div class="icon">💼</div>
+    <div class="text"><div class="title">残業代計算</div><div class="desc">残業代を自動計算</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="card-split.html">
+    <div class="icon">💳</div>
+    <div class="text"><div class="title">分割払い計算</div><div class="desc">クレカ分割の支払額を計算</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="net-to-gross.html">
+    <div class="icon">💰</div>
+    <div class="text"><div class="title">手取り→年収</div><div class="desc">手取りから年収を逆算</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="rent.html">
+    <div class="icon">🏠</div>
+    <div class="text"><div class="title">家賃目安</div><div class="desc">適正な家賃を計算</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="saving.html">
+    <div class="icon">💰</div>
+    <div class="text"><div class="title">貯金ペース</div><div class="desc">何ヶ月で貯まるか計算</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="side-income.html">
+    <div class="icon">💻</div>
+    <div class="text"><div class="title">副業収入</div><div class="desc">副業の月収を計算</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="monthly-invest.html">
+    <div class="icon">📈</div>
+    <div class="text"><div class="title">毎月積立</div><div class="desc">積立投資の最終金額を計算</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="nisa.html">
+    <div class="icon">📊</div>
+    <div class="text"><div class="title">つみたてNISA</div><div class="desc">資産運用シミュレーション</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="tax-return.html">
+    <div class="icon">🧾</div>
+    <div class="text"><div class="title">確定申告</div><div class="desc">税額の目安を計算</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="resident-tax.html">
+    <div class="icon">🏛️</div>
+    <div class="text"><div class="title">住民税</div><div class="desc">住民税の目安を計算</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="income-tax.html">
+    <div class="icon">📄</div>
+    <div class="text"><div class="title">所得税</div><div class="desc">所得税の目安を計算</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="daily-pay.html">
+    <div class="icon">📅</div>
+    <div class="text"><div class="title">日割り給与</div><div class="desc">日割りの給料を計算</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="card" href="bonus.html">
+    <div class="icon">🎁</div>
+    <div class="text"><div class="title">ボーナス計算</div><div class="desc">ボーナス額を計算</div></div>
+    <div class="arrow">›</div>
+  </a>
+</div>
 </body>
 </html>
