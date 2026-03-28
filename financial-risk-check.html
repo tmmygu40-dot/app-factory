@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家計ヤバい度チェック</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+    min-height: 100vh;
+  }
+  .container { width: 100%; max-width: 480px; }
+  header {
+    background: #1a1a1a;
+    color: #fff;
+    text-align: center;
+    padding: 22px 16px 18px;
+    border-radius: 12px 12px 0 0;
+  }
+  header .emoji { font-size: 2rem; display: block; margin-bottom: 6px; }
+  header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: 0.04em; }
+  header p { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
+  .card {
+    background: #fff;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .field label { font-size: 0.8rem; color: #555; margin-bottom: 5px; display: block; }
+  .field .sublabel { font-size: 0.72rem; color: #aaa; margin-bottom: 5px; display: block; }
+  input[type="number"] {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+  }
+  input[type="number"]:focus { border-color: #1a1a1a; }
+  .btn-calc {
+    width: 100%;
+    padding: 15px;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .btn-calc:active { opacity: 0.8; }
+  .btn-reset {
+    width: 100%;
+    padding: 11px;
+    background: #fff;
+    color: #888;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .btn-reset:active { background: #f5f5f5; }
+  .error-msg {
+    background: #fff0f0;
+    color: #c0392b;
+    font-size: 0.82rem;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #f5c6c6;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+
+  /* 結果 */
+  .result {
+    background: #1a1a1a;
+    color: #fff;
+    padding: 20px 16px;
+    border-radius: 0 0 12px 12px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .result.show { display: flex; }
+
+  /* 判定ヒーロー */
+  .verdict-box {
+    border-radius: 12px;
+    padding: 22px 16px;
+    text-align: center;
+  }
+  .verdict-box.safe    { background: #0d3b1f; border: 2px solid #27ae60; }
+  .verdict-box.caution { background: #3b2800; border: 2px solid #f1c40f; }
+  .verdict-box.danger  { background: #3b0d0d; border: 2px solid #e74c3c; }
+  .verdict-icon  { font-size: 2.8rem; margin-bottom: 6px; }
+  .verdict-label { font-size: 0.75rem; color: #aaa; margin-bottom: 4px; letter-spacing: 0.05em; }
+  .verdict-title {
+    font-size: 2.4rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .verdict-box.safe    .verdict-title { color: #2ecc71; }
+  .verdict-box.caution .verdict-title { color: #f1c40f; }
+  .verdict-box.danger  .verdict-title { color: #e74c3c; }
+  .verdict-sub { font-size: 0.82rem; color: #aaa; margin-top: 8px; }
+
+  /* 数値グリッド */
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .result-cell {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .result-cell-label { font-size: 0.7rem; color: #aaa; margin-bottom: 4px; }
+  .result-cell-value { font-size: 1.05rem; font-weight: 700; color: #fff; }
+  .result-cell-value.green  { color: #2ecc71; }
+  .result-cell-value.yellow { color: #f1c40f; }
+  .result-cell-value.red    { color: #ff6b6b; }
+
+  /* ゲージ */
+  .gauge-wrap {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 13px 14px;
+  }
+  .gauge-row { margin-bottom: 10px; }
+  .gauge-row:last-child { margin-bottom: 0; }
+  .gauge-head {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #ccc;
+    margin-bottom: 5px;
+  }
+  .gauge-track {
+    background: #3a3a3a;
+    border-radius: 99px;
+    height: 10px;
+    overflow: hidden;
+  }
+  .gauge-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.4s ease;
+  }
+  .gauge-fill.green  { background: #27ae60; }
+  .gauge-fill.yellow { background: #f1c40f; }
+  .gauge-fill.red    { background: #e74c3c; }
+
+  /* アドバイス */
+  .advice-box {
+    border-radius: 8px;
+    padding: 13px 14px;
+  }
+  .advice-box.safe    { background: #0d3b1f; border: 1px solid #27ae60; }
+  .advice-box.caution { background: #3b2800; border: 1px solid #f1c40f; }
+  .advice-box.danger  { background: #3b0d0d; border: 1px solid #e74c3c; }
+  .advice-label { font-size: 0.7rem; color: #aaa; margin-bottom: 6px; }
+  .advice-list  { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .advice-list li {
+    font-size: 0.83rem;
+    color: #fff;
+    font-weight: 600;
+    padding-left: 1.2em;
+    position: relative;
+    line-height: 1.5;
+  }
+  .advice-list li::before { content: '›'; position: absolute; left: 0; color: #aaa; }
+
+  .notice {
+    font-size: 0.72rem;
+    color: #666;
+    line-height: 1.6;
+    border-top: 1px solid #333;
+    padding-top: 10px;
+  }
+  .back { display: block; text-align: center; margin-top: 16px; font-size: 0.85rem; color: #888; text-decoration: none; }
+  .back:hover { color: #333; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <span class="emoji">🏦</span>
+    <h1>家計ヤバい度チェック</h1>
+    <p>月収・固定費・借金・貯金から家計を診断</p>
+  </header>
+
+  <div class="card">
+    <div class="field">
+      <label>月収（手取り・円）</label>
+      <input type="number" id="income" inputmode="numeric" placeholder="例：280000">
+    </div>
+    <div class="field">
+      <label>固定費（円）</label>
+      <span class="sublabel">家賃・光熱費・サブスク・保険など</span>
+      <input type="number" id="fixed" inputmode="numeric" placeholder="例：120000">
+    </div>
+    <div class="field">
+      <label>借金返済額（円）</label>
+      <span class="sublabel">ローン・リボ・奨学金など（なければ0）</span>
+      <input type="number" id="debt" inputmode="numeric" placeholder="例：30000">
+    </div>
+    <div class="field">
+      <label>今月の貯金額（円）</label>
+      <span class="sublabel">実際に貯金できた / できる見込みの金額</span>
+      <input type="number" id="saving" inputmode="numeric" placeholder="例：20000">
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+    <button class="btn-calc" onclick="diagnose()">診断する</button>
+    <button class="btn-reset" onclick="resetAll()">リセット</button>
+  </div>
+
+  <div class="result" id="result">
+    <div class="verdict-box" id="verdictBox">
+      <div class="verdict-icon" id="verdictIcon"></div>
+      <div class="verdict-label">家計ヤバい度</div>
+      <div class="verdict-title" id="verdictTitle"></div>
+      <div class="verdict-sub" id="verdictSub"></div>
+    </div>
+
+    <div class="result-grid">
+      <div class="result-cell">
+        <div class="result-cell-label">支出割合</div>
+        <div class="result-cell-value" id="expenseRatio"></div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">貯金率</div>
+        <div class="result-cell-value" id="savingRate"></div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">可処分所得</div>
+        <div class="result-cell-value" id="disposable"></div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">借金負担率</div>
+        <div class="result-cell-value" id="debtRatio"></div>
+      </div>
+    </div>
+
+    <div class="gauge-wrap">
+      <div class="gauge-row">
+        <div class="gauge-head"><span>支出割合</span><span id="gExpLabel"></span></div>
+        <div class="gauge-track"><div class="gauge-fill" id="gExp" style="width:0%"></div></div>
+      </div>
+      <div class="gauge-row">
+        <div class="gauge-head"><span>貯金率</span><span id="gSavLabel"></span></div>
+        <div class="gauge-track"><div class="gauge-fill" id="gSav" style="width:0%"></div></div>
+      </div>
+      <div class="gauge-row">
+        <div class="gauge-head"><span>借金負担率</span><span id="gDebtLabel"></span></div>
+        <div class="gauge-track"><div class="gauge-fill" id="gDebt" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <div class="advice-box" id="adviceBox">
+      <div class="advice-label">💡 アドバイス</div>
+      <ul class="advice-list" id="adviceList"></ul>
+    </div>
+
+    <div class="notice">
+      ※ 簡易診断です。家計の状況は個人差があります。詳しくはFP（ファイナンシャルプランナー）へご相談ください。
+    </div>
+  </div>
+
+  <a class="back" href="index.html">← アプリ一覧に戻る</a>
+</div>
+
+<script>
+  function fmt(n) { return Math.round(n).toLocaleString() + ' 円'; }
+  function pct(n) { return Math.round(n) + '%'; }
+
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+  function hideError() { document.getElementById('errorMsg').classList.remove('show'); }
+
+  function colorClass(val, greenThreshold, redThreshold, invert) {
+    if (!invert) {
+      if (val <= greenThreshold) return 'green';
+      if (val >= redThreshold)   return 'red';
+      return 'yellow';
+    } else {
+      if (val >= greenThreshold) return 'green';
+      if (val <= redThreshold)   return 'red';
+      return 'yellow';
+    }
+  }
+
+  function diagnose() {
+    hideError();
+    const income  = parseFloat(document.getElementById('income').value);
+    const fixed   = parseFloat(document.getElementById('fixed').value);
+    const debt    = parseFloat(document.getElementById('debt').value) || 0;
+    const saving  = parseFloat(document.getElementById('saving').value) || 0;
+
+    if (isNaN(income) || income <= 0) { showError('月収を正しく入力してください'); return; }
+    if (isNaN(fixed)  || fixed  <  0) { showError('固定費を正しく入力してください'); return; }
+    if (debt   < 0) { showError('借金返済額は0以上で入力してください'); return; }
+    if (saving < 0) { showError('貯金額は0以上で入力してください'); return; }
+
+    const totalExpense   = fixed + debt;
+    const expenseRatioPct= totalExpense / income * 100;
+    const savingRatePct  = saving / income * 100;
+    const debtRatioPct   = debt   / income * 100;
+    const disposable     = income - totalExpense;
+
+    // ── 判定 ──
+    let score = 0;
+    if (expenseRatioPct >= 80)  score += 3;
+    else if (expenseRatioPct >= 60) score += 1;
+    if (debtRatioPct >= 20)     score += 2;
+    else if (debtRatioPct > 0)  score += 1;
+    if (savingRatePct < 5)      score += 2;
+    else if (savingRatePct < 15) score += 1;
+    if (disposable < 0)         score += 3;
+
+    let level;
+    if (score >= 5)      level = 'danger';
+    else if (score >= 2) level = 'caution';
+    else                 level = 'safe';
+
+    const LEVELS = {
+      safe:    { icon: '✅', title: '安全',  sub: '家計は健全です。この調子を続けましょう！' },
+      caution: { icon: '⚠️', title: '注意',  sub: '改善できる点があります。早めに対策を。' },
+      danger:  { icon: '🚨', title: '危険！', sub: '家計が危機的な状態です。今すぐ見直しを！' },
+    };
+    const lv = LEVELS[level];
+
+    // ── DOM 更新 ──
+    const verdictBox = document.getElementById('verdictBox');
+    verdictBox.className = 'verdict-box ' + level;
+    document.getElementById('verdictIcon').textContent  = lv.icon;
+    document.getElementById('verdictTitle').textContent = lv.title;
+    document.getElementById('verdictSub').textContent   = lv.sub;
+
+    const expCC  = colorClass(expenseRatioPct, 60, 80, false);
+    const savCC  = colorClass(savingRatePct,   20, 5,  true);
+    const debtCC = colorClass(debtRatioPct,    10, 20, false);
+
+    document.getElementById('expenseRatio').textContent = pct(expenseRatioPct);
+    document.getElementById('expenseRatio').className   = 'result-cell-value ' + expCC;
+    document.getElementById('savingRate').textContent   = pct(savingRatePct);
+    document.getElementById('savingRate').className     = 'result-cell-value ' + savCC;
+    document.getElementById('disposable').textContent   = fmt(disposable);
+    document.getElementById('disposable').className     = 'result-cell-value ' + (disposable >= 0 ? 'green' : 'red');
+    document.getElementById('debtRatio').textContent    = pct(debtRatioPct);
+    document.getElementById('debtRatio').className      = 'result-cell-value ' + debtCC;
+
+    const expW  = Math.min(100, expenseRatioPct);
+    const savW  = Math.min(100, savingRatePct);
+    const debtW = Math.min(100, debtRatioPct * 3);
+    document.getElementById('gExp').style.width     = expW + '%';
+    document.getElementById('gExp').className       = 'gauge-fill ' + expCC;
+    document.getElementById('gExpLabel').textContent= pct(expenseRatioPct);
+    document.getElementById('gSav').style.width     = savW + '%';
+    document.getElementById('gSav').className       = 'gauge-fill ' + savCC;
+    document.getElementById('gSavLabel').textContent= pct(savingRatePct);
+    document.getElementById('gDebt').style.width    = debtW + '%';
+    document.getElementById('gDebt').className      = 'gauge-fill ' + debtCC;
+    document.getElementById('gDebtLabel').textContent = pct(debtRatioPct);
+
+    // アドバイス生成
+    const advices = [];
+    if (expenseRatioPct >= 80) advices.push('支出が収入の80%超！固定費（サブスク・保険）を今すぐ見直して。');
+    else if (expenseRatioPct >= 60) advices.push('支出割合が高めです。不要なサブスクや保険を削減しましょう。');
+    if (debtRatioPct >= 20) advices.push('借金返済が収入の20%超。低金利への借り換え・繰り上げ返済を検討して。');
+    else if (debtRatioPct > 0) advices.push('借金がある場合は返済を最優先に。利息を減らすことが最大の節約です。');
+    if (savingRatePct < 5) advices.push('貯金率が5%未満。先取り貯金（給与日に自動振替）を始めましょう。');
+    else if (savingRatePct < 20) advices.push('貯金率20%を目標に。毎月少しずつ増やしていきましょう。');
+    if (disposable < 0) advices.push('可処分所得がマイナス！収支が赤字です。固定費削減が急務です。');
+    if (advices.length === 0) advices.push('現状は健全です。貯金率20%以上を維持して資産形成を続けましょう。', 'NISAやiDeCoなど非課税制度を活用するのもおすすめです。');
+
+    const adviceBox  = document.getElementById('adviceBox');
+    adviceBox.className = 'advice-box ' + level;
+    const adviceList = document.getElementById('adviceList');
+    adviceList.innerHTML = advices.map(a => '<li>' + a + '</li>').join('');
+
+    document.getElementById('result').classList.add('show');
+  }
+
+  function resetAll() {
+    ['income','fixed','debt','saving'].forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('result').classList.remove('show');
+    hideError();
+  }
+</script>
+</body>
+</html>
