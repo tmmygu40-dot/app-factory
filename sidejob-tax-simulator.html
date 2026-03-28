@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>副業の税金・手取り計算</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+    min-height: 100vh;
+  }
+  .container { width: 100%; max-width: 480px; }
+  header {
+    background: #1a1a1a;
+    color: #fff;
+    text-align: center;
+    padding: 22px 16px 18px;
+    border-radius: 12px 12px 0 0;
+  }
+  header .emoji { font-size: 2rem; display: block; margin-bottom: 6px; }
+  header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: 0.05em; }
+  header p { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
+  .card {
+    background: #fff;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .field label {
+    font-size: 0.8rem;
+    color: #555;
+    margin-bottom: 5px;
+    display: block;
+  }
+  .field .sublabel {
+    font-size: 0.72rem;
+    color: #aaa;
+    margin-bottom: 5px;
+    display: block;
+  }
+  input[type="number"] {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+    appearance: none;
+  }
+  input[type="number"]:focus { border-color: #1a1a1a; }
+  .select-row {
+    display: flex;
+    gap: 8px;
+  }
+  .select-row button {
+    flex: 1;
+    padding: 10px 4px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .select-row button.active {
+    border-color: #1a1a1a;
+    background: #1a1a1a;
+    color: #fff;
+  }
+  .btn-calc {
+    width: 100%;
+    padding: 15px;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .btn-calc:active { opacity: 0.8; }
+  .btn-reset {
+    width: 100%;
+    padding: 11px;
+    background: #fff;
+    color: #888;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .btn-reset:active { background: #f5f5f5; }
+  .result {
+    background: #1a1a1a;
+    color: #fff;
+    padding: 20px 16px;
+    border-radius: 0 0 12px 12px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .result.show { display: flex; }
+  .result-hero {
+    background: #2a2a2a;
+    border-radius: 10px;
+    padding: 18px 14px;
+    text-align: center;
+  }
+  .result-hero-label { font-size: 0.75rem; color: #aaa; margin-bottom: 6px; }
+  .result-hero-value { font-size: 2.2rem; font-weight: 700; color: #fff; }
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .result-cell {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .result-cell-label { font-size: 0.7rem; color: #aaa; margin-bottom: 4px; }
+  .result-cell-value { font-size: 1.05rem; font-weight: 700; color: #fff; }
+  .result-msg {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: #ccc;
+  }
+  .result-msg .msg-label { font-size: 0.7rem; color: #aaa; margin-bottom: 4px; }
+  .result-msg .msg-text { color: #fff; font-weight: 600; }
+  .result-msg .msg-text.warn { color: #f0a500; }
+  .result-msg .msg-text.ok { color: #2ecc71; }
+  .notice {
+    font-size: 0.72rem;
+    color: #666;
+    line-height: 1.6;
+    border-top: 1px solid #333;
+    padding-top: 10px;
+  }
+  .error-msg {
+    background: #fff0f0;
+    color: #c0392b;
+    font-size: 0.82rem;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #f5c6c6;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+  .back { display: block; text-align: center; margin-top: 16px; font-size: 0.85rem; color: #888; text-decoration: none; }
+  .back:hover { color: #333; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <span class="emoji">💼</span>
+    <h1>副業の税金・手取り計算</h1>
+    <p>売上・経費から税額と手取りを簡易試算</p>
+  </header>
+
+  <div class="card">
+    <div class="field">
+      <label>副業の年間売上（円）</label>
+      <input type="number" id="revenue" inputmode="numeric" placeholder="例：500000">
+    </div>
+    <div class="field">
+      <label>年間経費（円）</label>
+      <span class="sublabel">交通費・材料費・通信費など</span>
+      <input type="number" id="expense" inputmode="numeric" placeholder="例：50000">
+    </div>
+    <div class="field">
+      <label>本業の年収（円）<span style="color:#aaa;font-weight:400;">　任意</span></label>
+      <span class="sublabel">確定申告の目安判定に使用（未入力でもOK）</span>
+      <input type="number" id="mainIncome" inputmode="numeric" placeholder="例：4000000">
+    </div>
+    <div class="field">
+      <label>所得税率（簡易）</label>
+      <div class="select-row" id="taxRateGroup">
+        <button onclick="selectRate(this, 5)"  class="active">5%</button>
+        <button onclick="selectRate(this, 10)"          >10%</button>
+        <button onclick="selectRate(this, 20)"          >20%</button>
+      </div>
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+    <button class="btn-calc" onclick="calculate()">計算する</button>
+    <button class="btn-reset" onclick="resetAll()">リセット</button>
+  </div>
+
+  <div class="result" id="result">
+    <div class="result-hero">
+      <div class="result-hero-label">副業の手取り額</div>
+      <div class="result-hero-value" id="takeHome"></div>
+    </div>
+    <div class="result-grid">
+      <div class="result-cell">
+        <div class="result-cell-label">副業所得</div>
+        <div class="result-cell-value" id="sideIncome"></div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">合計税額</div>
+        <div class="result-cell-value" id="totalTax"></div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">所得税（目安）</div>
+        <div class="result-cell-value" id="incomeTax"></div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">住民税（目安）</div>
+        <div class="result-cell-value" id="residentTax"></div>
+      </div>
+    </div>
+    <div class="result-msg">
+      <div class="msg-label">確定申告の目安</div>
+      <div class="msg-text" id="filingMsg"></div>
+    </div>
+    <div class="notice">
+      ※ これは一般向けの簡易シミュレーターです。実際の税額は控除・条件により異なります。正式な申告は税理士や国税庁の公的情報をご確認ください。
+    </div>
+  </div>
+
+  <a class="back" href="index.html">← アプリ一覧に戻る</a>
+</div>
+
+<script>
+  let selectedRate = 5;
+
+  function selectRate(btn, rate) {
+    selectedRate = rate;
+    document.querySelectorAll('#taxRateGroup button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function fmt(n) { return Math.round(n).toLocaleString() + ' 円'; }
+
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+
+  function hideError() {
+    document.getElementById('errorMsg').classList.remove('show');
+  }
+
+  function calculate() {
+    hideError();
+
+    const revenue    = parseFloat(document.getElementById('revenue').value);
+    const expense    = parseFloat(document.getElementById('expense').value);
+    const mainIncome = parseFloat(document.getElementById('mainIncome').value);
+
+    if (isNaN(revenue) || revenue < 0) {
+      showError('副業の年間売上を正しく入力してください');
+      return;
+    }
+    if (isNaN(expense) || expense < 0) {
+      showError('年間経費を正しく入力してください（0円の場合は0を入力）');
+      return;
+    }
+
+    const sideIncome    = Math.max(0, revenue - expense);
+    const incomeTax     = Math.round(sideIncome * selectedRate / 100);
+    const residentTax   = Math.round(sideIncome * 0.10);
+    const totalTax      = incomeTax + residentTax;
+    const takeHome      = Math.max(0, sideIncome - totalTax);
+
+    document.getElementById('sideIncome').textContent  = fmt(sideIncome);
+    document.getElementById('incomeTax').textContent   = fmt(incomeTax);
+    document.getElementById('residentTax').textContent = fmt(residentTax);
+    document.getElementById('totalTax').textContent    = fmt(totalTax);
+    document.getElementById('takeHome').textContent    = fmt(takeHome);
+
+    const msgEl = document.getElementById('filingMsg');
+    const hasMain = !isNaN(mainIncome) && mainIncome > 0;
+    if (sideIncome === 0) {
+      msgEl.className = 'msg-text ok';
+      msgEl.textContent = '副業所得が0円のため、申告不要の可能性があります。';
+    } else if (hasMain && sideIncome > 200000) {
+      msgEl.className = 'msg-text warn';
+      msgEl.textContent = '副業の雑所得が20万円を超えているため、確定申告が必要な目安です。';
+    } else if (hasMain && sideIncome <= 200000) {
+      msgEl.className = 'msg-text ok';
+      msgEl.textContent = '副業の雑所得が20万円以下のため、会社員の場合は申告不要の目安です（住民税申告は別途必要な場合あり）。';
+    } else {
+      msgEl.className = 'msg-text';
+      msgEl.textContent = '本業年収を入力すると、確定申告の目安を表示できます。';
+    }
+
+    document.getElementById('result').classList.add('show');
+  }
+
+  function resetAll() {
+    document.getElementById('revenue').value    = '';
+    document.getElementById('expense').value    = '';
+    document.getElementById('mainIncome').value = '';
+    document.querySelectorAll('#taxRateGroup button').forEach((b, i) => {
+      b.classList.toggle('active', i === 0);
+    });
+    selectedRate = 5;
+    document.getElementById('result').classList.remove('show');
+    hideError();
+  }
+</script>
+</body>
+</html>
