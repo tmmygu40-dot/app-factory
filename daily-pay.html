@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>所得税シミュレーター</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+    min-height: 100vh;
+  }
+  .container { width: 100%; max-width: 480px; }
+  header {
+    background: #1a1a1a;
+    color: #fff;
+    text-align: center;
+    padding: 20px 16px 16px;
+    border-radius: 12px 12px 0 0;
+  }
+  header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: 0.05em; }
+  header p { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
+  .card {
+    background: #fff;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  label { font-size: 0.8rem; color: #555; margin-bottom: 4px; display: block; }
+  input {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+  }
+  input:focus { border-color: #1a1a1a; }
+  button {
+    width: 100%;
+    padding: 14px;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  button:active { opacity: 0.8; }
+  .result {
+    background: #1a1a1a;
+    color: #fff;
+    padding: 20px 16px;
+    border-radius: 0 0 12px 12px;
+    display: none;
+    gap: 12px;
+    flex-direction: column;
+  }
+  .result.show { display: flex; }
+  .result-row {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .result-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .result-tier { font-size: 0.75rem; color: #aaa; }
+  .result-rate { font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
+  .rate-low  { background: #27ae60; color: #fff; }
+  .rate-mid  { background: #e67e22; color: #fff; }
+  .rate-high { background: #e74c3c; color: #fff; }
+  .result-value { font-size: 1.6rem; font-weight: 700; color: #fff; }
+  .result-monthly { font-size: 0.8rem; color: #aaa; margin-top: 2px; }
+  .back { display: block; text-align: center; margin-top: 16px; font-size: 0.85rem; color: #888; text-decoration: none; }
+  .back:hover { color: #333; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>所得税シミュレーター</h1>
+    <p>年収から所得税の3段階目安を試算</p>
+  </header>
+
+  <div class="card">
+    <div>
+      <label>年収（円）</label>
+      <input type="number" id="income" inputmode="numeric" placeholder="例：5000000">
+    </div>
+    <button onclick="calculate()">計算する</button>
+  </div>
+
+  <div class="result" id="result">
+    <div class="result-row">
+      <div class="result-head">
+        <span class="result-tier">低所得目安</span>
+        <span class="result-rate rate-low">× 5%</span>
+      </div>
+      <div class="result-value" id="low"></div>
+      <div class="result-monthly" id="lowMonthly"></div>
+    </div>
+    <div class="result-row">
+      <div class="result-head">
+        <span class="result-tier">中間目安</span>
+        <span class="result-rate rate-mid">× 10%</span>
+      </div>
+      <div class="result-value" id="mid"></div>
+      <div class="result-monthly" id="midMonthly"></div>
+    </div>
+    <div class="result-row">
+      <div class="result-head">
+        <span class="result-tier">高所得目安</span>
+        <span class="result-rate rate-high">× 20%</span>
+      </div>
+      <div class="result-value" id="high"></div>
+      <div class="result-monthly" id="highMonthly"></div>
+    </div>
+  </div>
+
+  <a class="back" href="index.html">← アプリ一覧に戻る</a>
+</div>
+
+<script>
+  const STORAGE_KEY = 'income_tax_v1';
+
+  function calculate() {
+    const income = parseFloat(document.getElementById('income').value);
+
+    if (isNaN(income) || income <= 0) {
+      alert('年収に正の数値を入力してください');
+      return;
+    }
+
+    const rates = [0.05, 0.10, 0.20];
+    const ids   = ['low', 'mid', 'high'];
+
+    rates.forEach((r, i) => {
+      const tax     = Math.round(income * r);
+      const monthly = Math.round(tax / 12);
+      document.getElementById(ids[i]).textContent        = tax.toLocaleString() + ' 円';
+      document.getElementById(ids[i] + 'Monthly').textContent = '月割り：' + monthly.toLocaleString() + ' 円 / 月';
+    });
+
+    document.getElementById('result').classList.add('show');
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ income }));
+  }
+
+  function load() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+    document.getElementById('income').value = JSON.parse(saved).income;
+  }
+
+  load();
+</script>
+</body>
+</html>
