@@ -1,44 +1,149 @@
-<a class="card" href="bonus.html">
-  <div class="icon">🎁</div>
-  <div class="text">
-    <div class="title">ボーナス計算</div>
-    <div class="desc">基本給から手取りを自動計算</div>
-  </div>
-  <div class="arrow">›</div>
-</a>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>計算アプリ集</title>
 
-<a class="card" href="lifetime-income.html">
-  <div class="icon">💰</div>
-  <div class="text">
-    <div class="title">生涯年収シミュレーター</div>
-    <div class="desc">何年目でいくら稼ぐか見える</div>
-  </div>
-  <div class="arrow">›</div>
-</a>
+<style>
+* {
+  box-sizing: border-box;
+}
 
-<a class="card" href="job-change.html">
-  <div class="icon">💼</div>
-  <div class="text">
-    <div class="title">転職年収シミュレーター</div>
-    <div class="desc">転職でどれだけ差が出るか</div>
-  </div>
-  <div class="arrow">›</div>
-</a>
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  background: #f5f5f5;
+}
 
-<a class="card" href="retirement.html">
-  <div class="icon">🏦</div>
-  <div class="text">
-    <div class="title">老後資金シミュレーター</div>
-    <div class="desc">将来いくら貯まるかを試算</div>
-  </div>
-  <div class="arrow">›</div>
-</a>
+.container {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding-bottom: 24px;
+}
 
-<a class="card" href="freelance-invoice.html">
-  <div class="icon">🧾</div>
-  <div class="text">
-    <div class="title">請求額シミュレーター</div>
-    <div class="desc">税込の請求金額を自動計算</div>
-  </div>
-  <div class="arrow">›</div>
-</a>
+header {
+  background: #000;
+  color: #fff;
+  text-align: center;
+  padding: 22px 16px;
+  border-radius: 0 0 16px 16px;
+  margin-bottom: 8px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+header p {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: #ccc;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fff;
+  margin: 14px 16px;
+  padding: 18px 16px;
+  border-radius: 16px;
+  text-decoration: none;
+  color: #111;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.icon {
+  font-size: 32px;
+  width: 48px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.desc {
+  font-size: 14px;
+  color: #777;
+  line-height: 1.5;
+}
+
+.arrow {
+  font-size: 28px;
+  color: #bbb;
+  flex-shrink: 0;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <h1>📱 計算アプリ集</h1>
+    <p>スマホでサッと使える計算ツール</p>
+  </header>
+
+  <a class="card" href="bonus.html">
+    <div class="icon">🎁</div>
+    <div class="text">
+      <div class="title">ボーナス計算</div>
+      <div class="desc">基本給から手取りを自動計算</div>
+    </div>
+    <div class="arrow">›</div>
+  </a>
+
+  <a class="card" href="lifetime-income.html">
+    <div class="icon">💰</div>
+    <div class="text">
+      <div class="title">生涯年収シミュレーター</div>
+      <div class="desc">何年目でいくら稼ぐか見える</div>
+    </div>
+    <div class="arrow">›</div>
+  </a>
+
+  <a class="card" href="job-change.html">
+    <div class="icon">💼</div>
+    <div class="text">
+      <div class="title">転職年収シミュレーター</div>
+      <div class="desc">転職でどれだけ差が出るか</div>
+    </div>
+    <div class="arrow">›</div>
+  </a>
+
+  <a class="card" href="retirement.html">
+    <div class="icon">🏦</div>
+    <div class="text">
+      <div class="title">老後資金シミュレーター</div>
+      <div class="desc">将来いくら貯まるかを試算</div>
+    </div>
+    <div class="arrow">›</div>
+  </a>
+
+  <a class="card" href="freelance-invoice.html">
+    <div class="icon">🧾</div>
+    <div class="text">
+      <div class="title">請求額シミュレーター</div>
+      <div class="desc">税込の請求金額を自動計算</div>
+    </div>
+    <div class="arrow">›</div>
+  </a>
+
+</div>
+
+</body>
+</html>
