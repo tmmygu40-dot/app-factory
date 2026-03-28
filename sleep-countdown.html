@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>あと何回寝れる？</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+    min-height: 100vh;
+  }
+  .container { width: 100%; max-width: 480px; }
+  header {
+    background: #1a1a1a;
+    color: #fff;
+    text-align: center;
+    padding: 22px 16px 18px;
+    border-radius: 12px 12px 0 0;
+  }
+  header .emoji { font-size: 2rem; display: block; margin-bottom: 6px; }
+  header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: 0.04em; }
+  header p { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
+  .card {
+    background: #fff;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .field label { font-size: 0.8rem; color: #555; margin-bottom: 5px; display: block; }
+  .field .sublabel { font-size: 0.72rem; color: #aaa; margin-bottom: 5px; display: block; }
+  input {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+  }
+  input:focus { border-color: #1a1a1a; }
+  .btn-calc {
+    width: 100%;
+    padding: 15px;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .btn-calc:active { opacity: 0.8; }
+  .btn-reset {
+    width: 100%;
+    padding: 11px;
+    background: #fff;
+    color: #888;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .btn-reset:active { background: #f5f5f5; }
+  .error-msg {
+    background: #fff0f0;
+    color: #c0392b;
+    font-size: 0.82rem;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #f5c6c6;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+  .result {
+    background: #1a1a1a;
+    color: #fff;
+    padding: 28px 16px 22px;
+    border-radius: 0 0 12px 12px;
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+  .result.show { display: flex; }
+  .result-hero-label {
+    font-size: 0.85rem;
+    color: #aaa;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+  .result-hero-value {
+    font-size: 4rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+    letter-spacing: -2px;
+  }
+  .result-hero-unit {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #aaa;
+    margin-left: 4px;
+    letter-spacing: 0;
+  }
+  .result-hero-sub {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 10px;
+  }
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .result-cell {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 14px 10px;
+  }
+  .result-cell-label { font-size: 0.7rem; color: #aaa; margin-bottom: 6px; }
+  .result-cell-value { font-size: 1.5rem; font-weight: 700; color: #fff; line-height: 1; }
+  .result-cell-unit  { font-size: 0.75rem; color: #888; margin-top: 3px; }
+  .life-bar-wrap {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 14px;
+    text-align: left;
+  }
+  .life-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    color: #aaa;
+    margin-bottom: 8px;
+  }
+  .life-bar-track {
+    background: #3a3a3a;
+    border-radius: 99px;
+    height: 12px;
+    overflow: hidden;
+  }
+  .life-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #6366f1, #a78bfa);
+    transition: width 0.6s ease;
+  }
+  .life-bar-pct {
+    font-size: 0.75rem;
+    color: #aaa;
+    margin-top: 6px;
+    text-align: right;
+  }
+  .result-message {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 16px 14px;
+    font-size: 0.95rem;
+    color: #fff;
+    font-weight: 600;
+    line-height: 1.6;
+  }
+  .result-message .msg-sub {
+    font-size: 0.78rem;
+    color: #aaa;
+    font-weight: 400;
+    margin-top: 6px;
+  }
+  .notice {
+    font-size: 0.72rem;
+    color: #666;
+    line-height: 1.6;
+    border-top: 1px solid #333;
+    padding-top: 10px;
+    text-align: left;
+  }
+  .back { display: block; text-align: center; margin-top: 16px; font-size: 0.85rem; color: #888; text-decoration: none; }
+  .back:hover { color: #333; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <span class="emoji">🌙</span>
+    <h1>あと何回寝れる？</h1>
+    <p>残りの人生を「睡眠回数」で実感する</p>
+  </header>
+
+  <div class="card">
+    <div class="field">
+      <label>生年月日</label>
+      <input type="date" id="birthday">
+    </div>
+    <div class="field">
+      <label>想定寿命（歳）</label>
+      <span class="sublabel">日本人の平均寿命は男性約81歳・女性約87歳</span>
+      <input type="number" id="lifespan" inputmode="numeric" placeholder="例：85" value="85">
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+    <button class="btn-calc" onclick="calculate()">計算する</button>
+    <button class="btn-reset" onclick="resetAll()">リセット</button>
+  </div>
+
+  <div class="result" id="result">
+    <div>
+      <div class="result-hero-label">あと眠れる回数</div>
+      <div>
+        <span class="result-hero-value" id="sleepCount"></span><span class="result-hero-unit">回</span>
+      </div>
+      <div class="result-hero-sub" id="heroSub"></div>
+    </div>
+
+    <div class="result-grid">
+      <div class="result-cell">
+        <div class="result-cell-label">残り日数</div>
+        <div class="result-cell-value" id="remainDays"></div>
+        <div class="result-cell-unit">日</div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">残り年数</div>
+        <div class="result-cell-value" id="remainYears"></div>
+        <div class="result-cell-unit">年</div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">現在の年齢</div>
+        <div class="result-cell-value" id="currentAge"></div>
+        <div class="result-cell-unit">歳</div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">残り週数</div>
+        <div class="result-cell-value" id="remainWeeks"></div>
+        <div class="result-cell-unit">週</div>
+      </div>
+    </div>
+
+    <div class="life-bar-wrap">
+      <div class="life-bar-label">
+        <span>誕生</span>
+        <span id="barTitle"></span>
+      </div>
+      <div class="life-bar-track">
+        <div class="life-bar-fill" id="lifeBarFill" style="width:0%"></div>
+      </div>
+      <div class="life-bar-pct" id="lifeBarPct"></div>
+    </div>
+
+    <div class="result-message" id="message"></div>
+
+    <div class="notice">
+      ※ あくまで試算です。実際の寿命には個人差があります。毎晩の睡眠を「1回分の貴重な時間」として意識するきっかけにしてください。
+    </div>
+  </div>
+
+  <a class="back" href="index.html">← アプリ一覧に戻る</a>
+</div>
+
+<script>
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+  function hideError() { document.getElementById('errorMsg').classList.remove('show'); }
+
+  function calculate() {
+    hideError();
+    const birthday = document.getElementById('birthday').value;
+    const lifespan = parseFloat(document.getElementById('lifespan').value);
+
+    if (!birthday) { showError('生年月日を入力してください'); return; }
+    if (isNaN(lifespan) || lifespan < 1 || lifespan > 150) {
+      showError('想定寿命を正しく入力してください（1〜150）'); return;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const birth = new Date(birthday);
+    birth.setHours(0, 0, 0, 0);
+
+    if (birth > today) { showError('生年月日は今日より前の日付を入力してください'); return; }
+
+    const deathDate = new Date(birth);
+    deathDate.setFullYear(birth.getFullYear() + lifespan);
+
+    if (deathDate <= today) {
+      showError('想定寿命をすでに超えています。寿命の設定を見直してください'); return;
+    }
+
+    const msPerDay   = 86400000;
+    const remainDays = Math.floor((deathDate - today) / msPerDay);
+    const remainWeeks= Math.floor(remainDays / 7);
+    const remainYears= (remainDays / 365.25).toFixed(1);
+
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+
+    const totalDays  = Math.floor((deathDate - birth) / msPerDay);
+    const elapsedDays= Math.floor((today - birth) / msPerDay);
+    const pct        = Math.min(100, Math.max(0, Math.round(elapsedDays / totalDays * 100)));
+
+    document.getElementById('sleepCount').textContent  = remainDays.toLocaleString();
+    document.getElementById('heroSub').textContent     = '今夜眠ったら、残り' + (remainDays - 1).toLocaleString() + '回になります';
+    document.getElementById('remainDays').textContent  = remainDays.toLocaleString();
+    document.getElementById('remainWeeks').textContent = remainWeeks.toLocaleString();
+    document.getElementById('remainYears').textContent = remainYears;
+    document.getElementById('currentAge').textContent  = age;
+    document.getElementById('barTitle').textContent    = lifespan + '歳';
+    document.getElementById('lifeBarFill').style.width = pct + '%';
+    document.getElementById('lifeBarPct').textContent  = '人生の ' + pct + '% が経過（残り ' + (100 - pct) + '%）';
+
+    let msg, sub;
+    if (remainDays > 15000) {
+      msg = '🌱 まだ' + remainDays.toLocaleString() + '回も眠れます。';
+      sub = '長い時間があるからこそ、今日の1回を丁寧に。良い睡眠が良い明日をつくります。';
+    } else if (remainDays > 7000) {
+      msg = '🌙 残り' + remainDays.toLocaleString() + '回。折り返し地点が近づいています。';
+      sub = 'その1回の眠りの前に、今日を振り返る習慣を持ちましょう。';
+    } else if (remainDays > 3000) {
+      msg = '⭐ 残り' + remainDays.toLocaleString() + '回。1回1回が本当に貴重です。';
+      sub = '眠る前の時間を、大切な人や好きなことに使っていますか？';
+    } else {
+      msg = '✨ 残り' + remainDays.toLocaleString() + '回。すべての夜が宝物。';
+      sub = '毎晩、今日に感謝して眠りにつきましょう。';
+    }
+    const msgEl = document.getElementById('message');
+    msgEl.innerHTML = msg + (sub ? '<div class="msg-sub">' + sub + '</div>' : '');
+
+    document.getElementById('result').classList.add('show');
+  }
+
+  function resetAll() {
+    document.getElementById('birthday').value = '';
+    document.getElementById('lifespan').value = '85';
+    document.getElementById('result').classList.remove('show');
+    hideError();
+  }
+</script>
+</body>
+</html>
