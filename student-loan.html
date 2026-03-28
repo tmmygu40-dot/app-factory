@@ -9,35 +9,37 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
-  background:#f0f0f0;
-  display:flex;
-  justify-content:center;
-  padding:16px;
+  background:#f5f5f5;
 }
-.container{width:100%;max-width:480px;}
+
+.container{
+  max-width:480px;
+  margin:0 auto;
+}
 
 header{
   background:#000;
   color:#fff;
   text-align:center;
   padding:20px;
-  border-radius:12px 12px 0 0;
 }
 
 .card{
   background:#fff;
+  margin:15px;
   padding:20px;
+  border-radius:12px;
 }
 
 label{
-  font-size:0.8rem;
+  font-size:14px;
   color:#555;
 }
 
 input{
   width:100%;
   padding:12px;
-  margin:8px 0 14px;
+  margin:8px 0 15px;
   border-radius:8px;
   border:1px solid #ccc;
 }
@@ -48,32 +50,23 @@ button{
   background:#000;
   color:#fff;
   border:none;
-  border-radius:8px;
+  border-radius:10px;
 }
 
 .result{
-  background:#000;
-  color:#fff;
+  background:#fff;
+  margin:15px;
   padding:20px;
+  border-radius:12px;
   display:none;
 }
+
 .result.show{display:block;}
 
 .big{
-  font-size:1.6rem;
+  font-size:18px;
   font-weight:bold;
   margin-bottom:10px;
-}
-
-.sub{
-  font-size:0.9rem;
-  color:#ccc;
-  line-height:1.7;
-}
-
-.share{
-  background:#4CAF50;
-  margin-top:10px;
 }
 </style>
 </head>
@@ -103,79 +96,36 @@ button{
 
 <div class="result" id="result">
 <div class="big" id="yearsText"></div>
-<div class="sub" id="detail"></div>
-
-<button class="share" onclick="share()">📤 シェア</button>
+<div id="detail"></div>
 </div>
 
 </div>
 
 <script>
-window.onload=()=>{
-  loan.value=localStorage.getItem("loan")||"";
-  monthly.value=localStorage.getItem("monthly")||"";
-  rate.value=localStorage.getItem("rate")||"1";
-};
-
-function fmt(n){
-  return Math.round(n/10000)+"万円";
-}
-
 function calc(){
   const l=Number(loan.value);
   const m=Number(monthly.value);
   const r=Number(rate.value)/100/12;
 
-  if(!l || !m){
+  if(!l||!m){
     alert("入力して");
     return;
   }
 
-  if(m <= l * r){
-    alert("毎月返済額が少なすぎて元本が減らないよ");
-    return;
-  }
-
-  localStorage.setItem("loan",l);
-  localStorage.setItem("monthly",m);
-  localStorage.setItem("rate",rate.value);
-
   let balance=l;
   let months=0;
-  let totalPaid=0;
 
   while(balance>0 && months<1200){
-    const interest=balance*r;
-    balance=balance+interest-m;
-    totalPaid+=m;
+    balance=balance+(balance*r)-m;
     months++;
   }
 
-  const years=Math.floor(months/12);
-  const remainMonths=months%12;
-  const interestTotal=totalPaid-l;
+  const y=Math.floor(months/12);
+  const mm=months%12;
 
-  yearsText.innerHTML="完済まで：約 " + years + "年 " + remainMonths + "ヶ月";
-  detail.innerHTML=
-    "総返済額：" + fmt(totalPaid) + "<br>" +
-    "利息合計：" + fmt(interestTotal);
+  yearsText.innerHTML="完済まで：約 "+y+"年 "+mm+"ヶ月";
 
   result.classList.add("show");
-}
-
-function share(){
-  const text=yearsText.innerText;
-
-  if(navigator.share){
-    navigator.share({
-      title:"奨学金返済シミュレーター",
-      text:text,
-      url:location.href
-    });
-  }else{
-    navigator.clipboard.writeText(text);
-    alert("コピーしたよ");
-  }
 }
 </script>
 
