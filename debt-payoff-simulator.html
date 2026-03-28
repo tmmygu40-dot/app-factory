@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>借金いつ終わる？</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+    min-height: 100vh;
+  }
+  .container { width: 100%; max-width: 480px; }
+  header {
+    background: #1a1a1a;
+    color: #fff;
+    text-align: center;
+    padding: 22px 16px 18px;
+    border-radius: 12px 12px 0 0;
+  }
+  header .emoji { font-size: 2rem; display: block; margin-bottom: 6px; }
+  header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: 0.04em; }
+  header p { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
+  .card {
+    background: #fff;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .field label { font-size: 0.8rem; color: #555; margin-bottom: 5px; display: block; }
+  .field .sublabel { font-size: 0.72rem; color: #aaa; margin-bottom: 5px; display: block; }
+  input[type="number"] {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+  }
+  input[type="number"]:focus { border-color: #1a1a1a; }
+  .btn-calc {
+    width: 100%;
+    padding: 15px;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .btn-calc:active { opacity: 0.8; }
+  .btn-reset {
+    width: 100%;
+    padding: 11px;
+    background: #fff;
+    color: #888;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .btn-reset:active { background: #f5f5f5; }
+  .error-msg {
+    background: #fff0f0;
+    color: #c0392b;
+    font-size: 0.82rem;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #f5c6c6;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+  .result {
+    background: #1a1a1a;
+    color: #fff;
+    padding: 24px 16px 20px;
+    border-radius: 0 0 12px 12px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+  .result.show { display: flex; }
+  .result-hero {
+    background: #2a1a1a;
+    border: 1px solid #5a2a2a;
+    border-radius: 10px;
+    padding: 20px 14px;
+  }
+  .result-hero-label { font-size: 0.75rem; color: #e88; margin-bottom: 8px; }
+  .result-hero-value {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.1;
+    letter-spacing: -1px;
+  }
+  .result-hero-sub { font-size: 0.8rem; color: #aaa; margin-top: 8px; }
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .result-cell {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .result-cell-label { font-size: 0.7rem; color: #aaa; margin-bottom: 4px; }
+  .result-cell-value { font-size: 1.05rem; font-weight: 700; color: #fff; }
+  .result-cell-value.red { color: #ff6b6b; }
+  .result-breakdown {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 13px 14px;
+    text-align: left;
+  }
+  .breakdown-label { font-size: 0.7rem; color: #aaa; margin-bottom: 8px; }
+  .breakdown-bar-wrap { margin-bottom: 6px; }
+  .breakdown-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #ccc;
+    margin-bottom: 4px;
+  }
+  .breakdown-bar-track {
+    background: #3a3a3a;
+    border-radius: 99px;
+    height: 10px;
+    overflow: hidden;
+  }
+  .breakdown-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+  }
+  .fill-principal { background: #4a9eff; }
+  .fill-interest  { background: #ff6b6b; }
+  .result-comment {
+    background: #2a1a1a;
+    border: 1px solid #5a2a2a;
+    border-radius: 8px;
+    padding: 13px 14px;
+    font-size: 0.82rem;
+    color: #ffaaaa;
+    line-height: 1.7;
+    text-align: left;
+  }
+  .result-comment .comment-label { font-size: 0.7rem; color: #e88; margin-bottom: 4px; font-weight: 700; }
+  .result-comment .comment-text  { color: #fff; font-weight: 600; }
+  .notice {
+    font-size: 0.72rem;
+    color: #666;
+    line-height: 1.6;
+    border-top: 1px solid #333;
+    padding-top: 10px;
+    text-align: left;
+  }
+  .back { display: block; text-align: center; margin-top: 16px; font-size: 0.85rem; color: #888; text-decoration: none; }
+  .back:hover { color: #333; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <span class="emoji">💸</span>
+    <h1>借金いつ終わる？</h1>
+    <p>借入額・年利・月返済額から完済日を試算</p>
+  </header>
+
+  <div class="card">
+    <div class="field">
+      <label>借入金額（円）</label>
+      <input type="number" id="principal" inputmode="numeric" placeholder="例：1000000">
+    </div>
+    <div class="field">
+      <label>年利（%）</label>
+      <span class="sublabel">消費者金融は15〜18%、カードローンは10〜18%が目安</span>
+      <input type="number" id="rate" inputmode="decimal" placeholder="例：15">
+    </div>
+    <div class="field">
+      <label>毎月の返済額（円）</label>
+      <input type="number" id="monthly" inputmode="numeric" placeholder="例：30000">
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+    <button class="btn-calc" onclick="calculate()">計算する</button>
+    <button class="btn-reset" onclick="resetAll()">リセット</button>
+  </div>
+
+  <div class="result" id="result">
+    <div class="result-hero">
+      <div class="result-hero-label">⏳ 完済まであと</div>
+      <div class="result-hero-value" id="period"></div>
+      <div class="result-hero-sub" id="periodSub"></div>
+    </div>
+    <div class="result-grid">
+      <div class="result-cell">
+        <div class="result-cell-label">総支払額</div>
+        <div class="result-cell-value" id="totalPayment"></div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">利息合計</div>
+        <div class="result-cell-value red" id="totalInterest"></div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">借入額</div>
+        <div class="result-cell-value" id="principalDisp"></div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">返済回数</div>
+        <div class="result-cell-value" id="months"></div>
+      </div>
+    </div>
+    <div class="result-breakdown">
+      <div class="breakdown-label">総支払額の内訳</div>
+      <div class="breakdown-bar-wrap">
+        <div class="breakdown-bar-label">
+          <span>元金</span><span id="principalPct"></span>
+        </div>
+        <div class="breakdown-bar-track">
+          <div class="breakdown-bar-fill fill-principal" id="principalBar" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="breakdown-bar-wrap">
+        <div class="breakdown-bar-label">
+          <span>利息</span><span id="interestPct"></span>
+        </div>
+        <div class="breakdown-bar-track">
+          <div class="breakdown-bar-fill fill-interest" id="interestBar" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+    <div class="result-comment">
+      <div class="comment-label">⚠️ アドバイス</div>
+      <div class="comment-text" id="commentText"></div>
+    </div>
+    <div class="notice">
+      ※ 元利均等返済ベースの簡易試算です。実際の返済条件は契約内容によって異なります。
+    </div>
+  </div>
+
+  <a class="back" href="index.html">← アプリ一覧に戻る</a>
+</div>
+
+<script>
+  const STORAGE_KEY = 'debt_payoff_v1';
+
+  function fmt(n) { return Math.round(n).toLocaleString() + ' 円'; }
+
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+  function hideError() { document.getElementById('errorMsg').classList.remove('show'); }
+
+  function calculate() {
+    hideError();
+    const P       = parseFloat(document.getElementById('principal').value);
+    const rate    = parseFloat(document.getElementById('rate').value);
+    const monthly = parseFloat(document.getElementById('monthly').value);
+
+    if (isNaN(P)       || P       <= 0) { showError('借入金額を正しく入力してください'); return; }
+    if (isNaN(rate)    || rate    <= 0) { showError('年利を正しく入力してください'); return; }
+    if (isNaN(monthly) || monthly <= 0) { showError('毎月の返済額を正しく入力してください'); return; }
+
+    const r = rate / 100 / 12;
+    const firstInterest = P * r;
+
+    if (monthly <= firstInterest) {
+      showError('毎月の返済額が利息以下のため完済できません。返済額を ' + Math.ceil(firstInterest + 1).toLocaleString() + ' 円以上にしてください。');
+      return;
+    }
+
+    let remaining = P;
+    let totalPaid = 0;
+    let monthCount = 0;
+    const MAX = 1200;
+
+    while (remaining > 0 && monthCount < MAX) {
+      const interest = remaining * r;
+      const payment  = Math.min(monthly, remaining + interest);
+      remaining      = remaining + interest - payment;
+      totalPaid     += payment;
+      monthCount++;
+    }
+
+    const totalInterest  = totalPaid - P;
+    const years          = Math.floor(monthCount / 12);
+    const mons           = monthCount % 12;
+    const interestPct    = Math.round(totalInterest / totalPaid * 100);
+    const principalPct   = 100 - interestPct;
+
+    let periodStr;
+    if (years > 0 && mons > 0) periodStr = years + '年\n' + mons + 'ヶ月';
+    else if (years > 0)        periodStr = years + '年';
+    else                       periodStr = mons + 'ヶ月';
+
+    document.getElementById('period').textContent        = periodStr;
+    document.getElementById('periodSub').textContent     = '（全' + monthCount + '回払い）';
+    document.getElementById('totalPayment').textContent  = fmt(totalPaid);
+    document.getElementById('totalInterest').textContent = fmt(totalInterest);
+    document.getElementById('principalDisp').textContent = fmt(P);
+    document.getElementById('months').textContent        = monthCount + ' 回';
+    document.getElementById('principalPct').textContent  = principalPct + '%';
+    document.getElementById('interestPct').textContent   = interestPct + '%';
+    document.getElementById('principalBar').style.width  = principalPct + '%';
+    document.getElementById('interestBar').style.width   = interestPct + '%';
+
+    let comment;
+    if (interestPct >= 50) {
+      comment = '利息が元金を上回っています！返済額を増やすか、低金利への借り換えを強く検討してください。毎月の返済額を少し増やすだけで、完済期間と利息を大幅に減らせます。';
+    } else if (interestPct >= 30) {
+      comment = '利息負担が ' + interestPct + '% と大きめです。繰り上げ返済や返済額アップで早期完済を目指しましょう。完済まで' + (years > 0 ? years + '年' : '') + (mons > 0 ? mons + 'ヶ月' : '') + 'の計画を意識してください。';
+    } else if (monthCount > 60) {
+      comment = '完済まで ' + (years > 0 ? years + '年以上' : mons + 'ヶ月') + かかります。長期化するほど利息も増えます。ボーナス時の繰り上げ返済も効果的です。';
+    } else {
+      comment = '返済ペースは比較的良好です。計画通りに返済を続ければ' + (years > 0 ? years + '年' + (mons > 0 ? mons + 'ヶ月' : '') : mons + 'ヶ月') + 'で完済できます。';
+    }
+    document.getElementById('commentText').textContent = comment;
+    document.getElementById('result').classList.add('show');
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ principal: P, rate, monthly }));
+  }
+
+  function resetAll() {
+    ['principal','rate','monthly'].forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('result').classList.remove('show');
+    hideError();
+  }
+
+  function load() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+    const d = JSON.parse(saved);
+    document.getElementById('principal').value = d.principal;
+    document.getElementById('rate').value      = d.rate;
+    document.getElementById('monthly').value   = d.monthly;
+  }
+
+  load();
+</script>
+</body>
+</html>
