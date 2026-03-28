@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ボーナス計算ツール</title>
+<title>ボーナス計算</title>
 
 <style>
 body {
@@ -12,7 +12,6 @@ body {
   background: #f5f5f5;
 }
 
-/* ヘッダー */
 .header {
   background: #000;
   color: #fff;
@@ -21,7 +20,6 @@ body {
   font-size: 18px;
 }
 
-/* カード */
 .card {
   background: #fff;
   margin: 15px;
@@ -30,7 +28,10 @@ body {
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-/* 入力 */
+label {
+  font-size: 14px;
+}
+
 input {
   width: 100%;
   padding: 12px;
@@ -41,7 +42,6 @@ input {
   border: 1px solid #ccc;
 }
 
-/* ボタン */
 button {
   width: 100%;
   padding: 14px;
@@ -52,11 +52,11 @@ button {
   border-radius: 10px;
 }
 
-/* 結果 */
 .result {
   margin-top: 15px;
   font-size: 18px;
   font-weight: bold;
+  line-height: 1.6;
 }
 </style>
 </head>
@@ -70,7 +70,7 @@ button {
 <label>基本給（円）</label>
 <input type="number" id="salary">
 
-<label>支給月数（例：2ヶ月）</label>
+<label>支給月数（例：2）</label>
 <input type="number" id="months" step="0.1">
 
 <label>税率（%）</label>
@@ -83,7 +83,7 @@ button {
 </div>
 
 <script>
-// ロード時に復元
+// 初期ロード
 window.onload = () => {
   document.getElementById("salary").value = localStorage.getItem("salary") || "";
   document.getElementById("months").value = localStorage.getItem("months") || "";
@@ -104,10 +104,11 @@ function calc() {
   const taxAmount = gross * (tax / 100);
   const net = gross - taxAmount;
 
-  document.getElementById("result").innerHTML =
-    `支給額：${gross.toLocaleString()}円<br>
-     税金：${taxAmount.toLocaleString()}円<br>
-     手取り：${net.toLocaleString()}円`;
+  document.getElementById("result").innerHTML = `
+支給額：${gross.toLocaleString()}円<br>
+税金：${taxAmount.toLocaleString()}円<br>
+手取り：${net.toLocaleString()}円
+`;
 }
 </script>
 
