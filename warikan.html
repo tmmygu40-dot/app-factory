@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- ★ 差し替え①：タイトル -->
+<title>割り勘計算</title>
+<style>
+/* ========== リセット ========== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ========== ベース ========== */
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background: #f5f5f3;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 56px;
+}
+
+/* ========== ヘッダー ========== */
+header {
+  width: 100%;
+  background: #1a1a1a;
+  color: #fff;
+  padding: 24px 20px 18px;
+  text-align: center;
+}
+header h1 { font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+header p  { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 5px; }
+
+/* ========== 入力カード ========== */
+.card {
+  width: 100%;
+  max-width: 480px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 20px;
+  margin: 20px 16px 0;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+}
+
+.field { margin-bottom: 20px; }
+.field:last-child { margin-bottom: 0; }
+
+.field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #999;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.input-wrap { position: relative; }
+
+.input-wrap input {
+  width: 100%;
+  padding: 14px 48px 14px 16px;
+  font-size: 20px;
+  font-weight: 700;
+  border: 2px solid #ebebeb;
+  border-radius: 12px;
+  outline: none;
+  background: #fafaf8;
+  color: #1a1a1a;
+  transition: border-color 0.15s;
+  -moz-appearance: textfield;
+}
+.input-wrap input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.input-wrap input:focus { border-color: #1a1a1a; background: #fff; }
+
+.unit {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  font-weight: 700;
+  color: #bbb;
+  pointer-events: none;
+}
+
+/* ========== 計算ボタン ========== */
+.calc-btn {
+  width: calc(100% - 32px);
+  max-width: 480px;
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 16px;
+  margin-top: 12px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.calc-btn:hover  { opacity: 0.85; }
+.calc-btn:active { transform: scale(0.98); }
+
+/* ========== 結果カード ========== */
+.result-card {
+  display: none;
+  width: calc(100% - 32px);
+  max-width: 480px;
+  background: #1a1a1a;
+  border-radius: 16px;
+  padding: 28px 20px;
+  margin-top: 12px;
+  text-align: center;
+}
+.result-card.show { display: block; }
+
+.result-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.result-main {
+  font-size: 52px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -2px;
+  line-height: 1;
+}
+.result-unit {
+  font-size: 20px;
+  color: rgba(255,255,255,0.5);
+  margin-left: 4px;
+}
+.result-sub {
+  margin-top: 14px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.35);
+  line-height: 1.6;
+}
+
+/* ========== 戻るリンク ========== */
+.back-link {
+  margin-top: 28px;
+  font-size: 13px;
+  color: #aaa;
+  text-decoration: none;
+}
+.back-link:hover { color: #555; }
+</style>
+</head>
+<body>
+
+<!-- ★ 差し替え①：タイトルと説明 -->
+<header>
+  <h1>割り勘計算</h1>
+  <p>合計金額と人数を入力してください</p>
+</header>
+
+<!-- ★ 差し替え②：入力欄 -->
+<div class="card">
+
+  <div class="field">
+    <label for="input1">合計金額</label>
+    <div class="input-wrap">
+      <input type="number" id="input1" min="0" inputmode="numeric" placeholder="5000">
+      <span class="unit">円</span>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="input2">人数</label>
+    <div class="input-wrap">
+      <input type="number" id="input2" min="1" inputmode="numeric" placeholder="4">
+      <span class="unit">人</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ★ 差し替え①：ボタンラベル -->
+<button class="calc-btn" onclick="calculate()">計算する</button>
+
+<!-- ★ 差し替え②：結果ラベルと単位 -->
+<div class="result-card" id="result">
+  <div class="result-label">1人あたり</div>
+  <div>
+    <span class="result-main" id="resultMain"></span><span class="result-unit">円</span>
+  </div>
+  <div class="result-sub" id="resultSub"></div>
+</div>
+
+<a class="back-link" href="index.html">← アプリ一覧に戻る</a>
+
+<script>
+// ★ 差し替え③：ストレージキー
+const STORAGE_KEY = 'warikan_v1';
+
+// ★ 差し替え③：計算ロジック
+function calculate() {
+  const total  = parseFloat(document.getElementById('input1').value);
+  const people = parseFloat(document.getElementById('input2').value);
+
+  if (!total || !people || total <= 0 || people < 1) {
+    document.getElementById('result').classList.remove('show');
+    return;
+  }
+
+  // ★ 差し替え③：割り算＋切り上げ
+  const answer = Math.ceil(total / people);
+  const sub    = `合計 ${total.toLocaleString()}円 ÷ ${people}人`;
+
+  document.getElementById('resultMain').textContent = answer.toLocaleString();
+  document.getElementById('resultSub').textContent  = sub;
+  document.getElementById('result').classList.add('show');
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ val1: total, val2: people }));
+}
+
+(function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    if (d.val1) document.getElementById('input1').value = d.val1;
+    if (d.val2) document.getElementById('input2').value = d.val2;
+    if (d.val1 && d.val2) calculate();
+  } catch (e) {}
+})();
+
+document.getElementById('input1').addEventListener('input', calculate);
+document.getElementById('input2').addEventListener('input', calculate);
+</script>
+</body>
+</html>
