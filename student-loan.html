@@ -6,127 +6,236 @@
 <title>奨学金返済シミュレーター</title>
 
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{
-  font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
-  background:#f5f5f5;
+* {
+  box-sizing: border-box;
 }
 
-.container{
-  max-width:480px;
-  margin:0 auto;
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  background: #f5f5f5;
 }
 
-header{
-  background:#000;
-  color:#fff;
-  text-align:center;
-  padding:20px;
+.container {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
 }
 
-.card{
-  background:#fff;
-  margin:15px;
-  padding:20px;
-  border-radius:12px;
+header {
+  background: #000;
+  color: #fff;
+  text-align: center;
+  padding: 22px 16px;
+  border-radius: 0 0 16px 16px;
 }
 
-label{
-  font-size:14px;
-  color:#555;
+header h1 {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.4;
+  font-weight: 700;
 }
 
-input{
-  width:100%;
-  padding:12px;
-  margin:8px 0 15px;
-  border-radius:8px;
-  border:1px solid #ccc;
+.card {
+  background: #fff;
+  margin: 16px;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
 }
 
-button{
-  width:100%;
-  padding:14px;
-  background:#000;
-  color:#fff;
-  border:none;
-  border-radius:10px;
+label {
+  display: block;
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 8px;
+  font-weight: 600;
 }
 
-.result{
-  background:#fff;
-  margin:15px;
-  padding:20px;
-  border-radius:12px;
-  display:none;
+input {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 18px;
+  font-size: 16px;
+  border: 1px solid #d8d8d8;
+  border-radius: 12px;
+  background: #fff;
 }
 
-.result.show{display:block;}
+button {
+  width: 100%;
+  padding: 16px;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
 
-.big{
-  font-size:18px;
-  font-weight:bold;
-  margin-bottom:10px;
+.result {
+  background: #fff;
+  margin: 16px;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  display: none;
+}
+
+.result.show {
+  display: block;
+}
+
+.big {
+  font-size: 24px;
+  font-weight: 800;
+  color: #111;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.detail {
+  font-size: 16px;
+  color: #555;
+  line-height: 1.8;
+}
+
+.share-btn {
+  margin-top: 16px;
+  background: #2f7d32;
+}
+
+.back {
+  display: block;
+  text-align: center;
+  margin: 24px 16px 32px;
+  color: #666;
+  text-decoration: none;
+  font-size: 14px;
 }
 </style>
 </head>
-
 <body>
 
 <div class="container">
 
-<header>
-<h1>🎓 奨学金返済シミュレーター</h1>
-</header>
+  <header>
+    <h1>🎓 奨学金返済<br>シミュレーター</h1>
+  </header>
 
-<div class="card">
+  <div class="card">
+    <label for="loan">借入総額（円）</label>
+    <input type="number" id="loan" placeholder="例：3000000">
 
-<label>借入総額（円）</label>
-<input type="number" id="loan">
+    <label for="monthly">毎月の返済額（円）</label>
+    <input type="number" id="monthly" placeholder="例：20000">
 
-<label>毎月の返済額（円）</label>
-<input type="number" id="monthly">
+    <label for="rate">金利（%）</label>
+    <input type="number" id="rate" value="1" placeholder="例：1">
 
-<label>金利（%）</label>
-<input type="number" id="rate" value="1">
+    <button onclick="calc()">計算する</button>
+  </div>
 
-<button onclick="calc()">計算する</button>
+  <div class="result" id="result">
+    <div class="big" id="yearsText"></div>
+    <div class="detail" id="detail"></div>
+    <button class="share-btn" onclick="shareResult()">📤 結果をシェア</button>
+  </div>
 
-</div>
-
-<div class="result" id="result">
-<div class="big" id="yearsText"></div>
-<div id="detail"></div>
-</div>
+  <a class="back" href="index.html">← アプリ一覧に戻る</a>
 
 </div>
 
 <script>
-function calc(){
-  const l=Number(loan.value);
-  const m=Number(monthly.value);
-  const r=Number(rate.value)/100/12;
+const STORAGE_KEY = "student_loan_v2";
 
-  if(!l||!m){
-    alert("入力して");
+function yen(n) {
+  return Math.round(n).toLocaleString() + "円";
+}
+
+function calc() {
+  const loan = Number(document.getElementById("loan").value);
+  const monthly = Number(document.getElementById("monthly").value);
+  const rate = Number(document.getElementById("rate").value) / 100 / 12;
+
+  if (!loan || !monthly) {
+    alert("借入総額と毎月の返済額を入力してね");
     return;
   }
 
-  let balance=l;
-  let months=0;
+  if (loan <= 0 || monthly <= 0) {
+    alert("0より大きい数字を入れてね");
+    return;
+  }
 
-  while(balance>0 && months<1200){
-    balance=balance+(balance*r)-m;
+  if (monthly <= loan * rate) {
+    alert("毎月の返済額が少なすぎて元本が減らないよ");
+    return;
+  }
+
+  let balance = loan;
+  let months = 0;
+  let totalPaid = 0;
+
+  while (balance > 0 && months < 1200) {
+    const interest = balance * rate;
+    balance = balance + interest - monthly;
+    totalPaid += monthly;
     months++;
   }
 
-  const y=Math.floor(months/12);
-  const mm=months%12;
+  const years = Math.floor(months / 12);
+  const remainMonths = months % 12;
+  const interestTotal = totalPaid - loan;
 
-  yearsText.innerHTML="完済まで：約 "+y+"年 "+mm+"ヶ月";
+  document.getElementById("yearsText").innerHTML =
+    "完済まで：約 " + years + "年 " + remainMonths + "ヶ月";
 
-  result.classList.add("show");
+  document.getElementById("detail").innerHTML =
+    "総返済額： " + yen(totalPaid) + "<br>" +
+    "利息合計： " + yen(interestTotal);
+
+  document.getElementById("result").classList.add("show");
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    loan: loan,
+    monthly: monthly,
+    rate: document.getElementById("rate").value
+  }));
 }
+
+function shareResult() {
+  const text = document.getElementById("yearsText").innerText;
+  if (!text) {
+    alert("先に計算してね");
+    return;
+  }
+
+  if (navigator.share) {
+    navigator.share({
+      title: "奨学金返済シミュレーター",
+      text: text,
+      url: location.href
+    });
+  } else {
+    navigator.clipboard.writeText(text);
+    alert("結果をコピーしたよ");
+  }
+}
+
+function load() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (!saved) return;
+
+  const data = JSON.parse(saved);
+  document.getElementById("loan").value = data.loan || "";
+  document.getElementById("monthly").value = data.monthly || "";
+  document.getElementById("rate").value = data.rate || "1";
+}
+
+load();
 </script>
 
 </body>
