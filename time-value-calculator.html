@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1秒の価値いくら？</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+    min-height: 100vh;
+  }
+  .container { width: 100%; max-width: 480px; }
+  header {
+    background: #1a1a1a;
+    color: #fff;
+    text-align: center;
+    padding: 22px 16px 18px;
+    border-radius: 12px 12px 0 0;
+  }
+  header .emoji { font-size: 2rem; display: block; margin-bottom: 6px; }
+  header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: 0.04em; }
+  header p { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
+  .card {
+    background: #fff;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .field label { font-size: 0.8rem; color: #555; margin-bottom: 5px; display: block; }
+  .field .sublabel { font-size: 0.72rem; color: #aaa; margin-bottom: 5px; display: block; }
+  input[type="number"] {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+  }
+  input[type="number"]:focus { border-color: #1a1a1a; }
+  .btn-calc {
+    width: 100%;
+    padding: 15px;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .btn-calc:active { opacity: 0.8; }
+  .btn-reset {
+    width: 100%;
+    padding: 11px;
+    background: #fff;
+    color: #888;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .btn-reset:active { background: #f5f5f5; }
+  .error-msg {
+    background: #fff0f0;
+    color: #c0392b;
+    font-size: 0.82rem;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #f5c6c6;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+  .result {
+    background: #1a1a1a;
+    color: #fff;
+    padding: 24px 16px 20px;
+    border-radius: 0 0 12px 12px;
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+  .result.show { display: flex; }
+  .result-hero {
+    padding: 6px 0 2px;
+  }
+  .result-hero-label {
+    font-size: 0.85rem;
+    color: #aaa;
+    margin-bottom: 10px;
+    letter-spacing: 0.05em;
+  }
+  .result-hero-eq {
+    font-size: 1rem;
+    color: #888;
+    margin-bottom: 4px;
+  }
+  .result-hero-value {
+    font-size: 4.2rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+    letter-spacing: -2px;
+  }
+  .result-hero-unit {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #aaa;
+    margin-left: 4px;
+    letter-spacing: 0;
+  }
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .result-cell {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 14px 10px;
+  }
+  .result-cell-label { font-size: 0.7rem; color: #aaa; margin-bottom: 6px; }
+  .result-cell-value { font-size: 1.4rem; font-weight: 700; color: #fff; line-height: 1; }
+  .result-cell-unit  { font-size: 0.75rem; color: #888; margin-top: 3px; }
+  .result-examples {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 14px;
+    text-align: left;
+  }
+  .examples-label { font-size: 0.7rem; color: #aaa; margin-bottom: 10px; }
+  .example-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    color: #ccc;
+    padding: 5px 0;
+    border-bottom: 1px solid #333;
+  }
+  .example-row:last-child { border-bottom: none; }
+  .example-row span { color: #fff; font-weight: 600; }
+  .result-message {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 0.9rem;
+    color: #fff;
+    font-weight: 600;
+    line-height: 1.6;
+  }
+  .result-message .msg-sub {
+    font-size: 0.78rem;
+    color: #aaa;
+    font-weight: 400;
+    margin-top: 4px;
+  }
+  .notice {
+    font-size: 0.72rem;
+    color: #666;
+    line-height: 1.6;
+    border-top: 1px solid #333;
+    padding-top: 10px;
+    text-align: left;
+  }
+  .back { display: block; text-align: center; margin-top: 16px; font-size: 0.85rem; color: #888; text-decoration: none; }
+  .back:hover { color: #333; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <span class="emoji">⚡</span>
+    <h1>1秒の価値いくら？</h1>
+    <p>年収から「あなたの時間の価値」を計算</p>
+  </header>
+
+  <div class="card">
+    <div class="field">
+      <label>年収（円）</label>
+      <input type="number" id="income" inputmode="numeric" placeholder="例：5000000">
+    </div>
+    <div class="field">
+      <label>1日の労働時間（時間）</label>
+      <input type="number" id="hoursPerDay" inputmode="decimal" placeholder="例：8">
+    </div>
+    <div class="field">
+      <label>年間休日（日）<span style="color:#aaa;font-weight:400;">　任意</span></label>
+      <span class="sublabel">未入力の場合は120日（一般的な会社員の目安）で計算</span>
+      <input type="number" id="holidays" inputmode="numeric" placeholder="例：120">
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+    <button class="btn-calc" onclick="calculate()">計算する</button>
+    <button class="btn-reset" onclick="resetAll()">リセット</button>
+  </div>
+
+  <div class="result" id="result">
+    <div class="result-hero">
+      <div class="result-hero-label">あなたの1秒の価値</div>
+      <div class="result-hero-eq">1秒 ＝</div>
+      <div>
+        <span class="result-hero-value" id="perSecond"></span><span class="result-hero-unit">円</span>
+      </div>
+    </div>
+
+    <div class="result-grid">
+      <div class="result-cell">
+        <div class="result-cell-label">時給</div>
+        <div class="result-cell-value" id="perHour"></div>
+        <div class="result-cell-unit">円 / 時間</div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">1分の価値</div>
+        <div class="result-cell-value" id="perMinute"></div>
+        <div class="result-cell-unit">円 / 分</div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">1日の価値</div>
+        <div class="result-cell-value" id="perDay"></div>
+        <div class="result-cell-unit">円 / 日</div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">稼働日数</div>
+        <div class="result-cell-value" id="workDays"></div>
+        <div class="result-cell-unit">日 / 年</div>
+      </div>
+    </div>
+
+    <div class="result-examples">
+      <div class="examples-label">日常の行動と時間コスト</div>
+      <div class="example-row">SNSを10分見る <span id="ex10min"></span></div>
+      <div class="example-row">通勤1時間 <span id="ex1hour"></span></div>
+      <div class="example-row">会議30分 <span id="ex30min"></span></div>
+      <div class="example-row">昼寝1時間 <span id="exNap"></span></div>
+    </div>
+
+    <div class="result-message" id="message"></div>
+
+    <div class="notice">
+      ※ 労働時間ベースの試算です。実際の「時間の価値」は休日・睡眠・余暇も含む考え方もあります。あくまで目安としてご活用ください。
+    </div>
+  </div>
+
+  <a class="back" href="index.html">← アプリ一覧に戻る</a>
+</div>
+
+<script>
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+  function hideError() { document.getElementById('errorMsg').classList.remove('show'); }
+
+  function fmt(n, decimals) {
+    if (decimals !== undefined) return n.toFixed(decimals);
+    return Math.round(n).toLocaleString();
+  }
+
+  function calculate() {
+    hideError();
+    const income      = parseFloat(document.getElementById('income').value);
+    const hoursPerDay = parseFloat(document.getElementById('hoursPerDay').value);
+    const holidaysVal = document.getElementById('holidays').value;
+    const holidays    = holidaysVal === '' ? 120 : parseFloat(holidaysVal);
+
+    if (isNaN(income) || income <= 0)          { showError('年収を正しく入力してください'); return; }
+    if (isNaN(hoursPerDay) || hoursPerDay <= 0) { showError('1日の労働時間を正しく入力してください'); return; }
+    if (isNaN(holidays) || holidays < 0 || holidays > 365) {
+      showError('年間休日は0〜365日の範囲で入力してください'); return;
+    }
+
+    const workDays    = 365 - holidays;
+    const workHours   = workDays * hoursPerDay;
+    const perHour     = income / workHours;
+    const perDay      = income / workDays;
+    const perMinute   = perHour / 60;
+    const perSecond   = perMinute / 60;
+
+    const secStr = perSecond >= 1
+      ? perSecond.toFixed(1)
+      : perSecond.toFixed(2);
+
+    document.getElementById('perSecond').textContent  = secStr;
+    document.getElementById('perHour').textContent    = Math.round(perHour).toLocaleString();
+    document.getElementById('perMinute').textContent  = Math.round(perMinute).toLocaleString();
+    document.getElementById('perDay').textContent     = Math.round(perDay).toLocaleString();
+    document.getElementById('workDays').textContent   = workDays;
+
+    document.getElementById('ex10min').textContent  = Math.round(perMinute * 10).toLocaleString() + ' 円';
+    document.getElementById('ex1hour').textContent  = Math.round(perHour).toLocaleString() + ' 円';
+    document.getElementById('ex30min').textContent  = Math.round(perMinute * 30).toLocaleString() + ' 円';
+    document.getElementById('exNap').textContent    = Math.round(perHour).toLocaleString() + ' 円';
+
+    let msg, sub;
+    if (perSecond >= 5) {
+      msg = '⚡ 1秒' + secStr + '円。この画面を見ている数秒で数十円が過ぎています。';
+      sub = '時間を意識するだけで、行動の優先順位が変わります。';
+    } else if (perSecond >= 1) {
+      msg = '⏱ 1秒' + secStr + '円。1分サボると ' + Math.round(perMinute).toLocaleString() + ' 円が消えます。';
+      sub = 'ムダな作業の自動化・外注化を考えてみましょう。';
+    } else {
+      msg = '💡 1秒' + secStr + '円。まだ伸びしろがあります。';
+      sub = '年収が上がるほど、1秒の重みも増します。スキルアップが最大の投資です。';
+    }
+    const msgEl = document.getElementById('message');
+    msgEl.innerHTML = msg + (sub ? '<div class="msg-sub">' + sub + '</div>' : '');
+
+    document.getElementById('result').classList.add('show');
+  }
+
+  function resetAll() {
+    document.getElementById('income').value      = '';
+    document.getElementById('hoursPerDay').value = '';
+    document.getElementById('holidays').value    = '';
+    document.getElementById('result').classList.remove('show');
+    hideError();
+  }
+</script>
+</body>
+</html>
