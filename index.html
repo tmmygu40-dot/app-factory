@@ -3,135 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ボーナス計算ツール</title>
+<title>アプリ一覧</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-    background: #f0f0f0;
-    display: flex;
-    justify-content: center;
+    font-family: sans-serif;
+    background: #f5f5f5;
     padding: 16px;
-    min-height: 100vh;
   }
-  .container { width: 100%; max-width: 480px; }
-  header {
-    background: #1a1a1a;
-    color: #fff;
-    text-align: center;
-    padding: 20px 16px 16px;
-    border-radius: 12px 12px 0 0;
-  }
-  header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: 0.05em; }
-  header p { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
   .card {
+    display: block;
     background: #fff;
-    padding: 20px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #000;
   }
-  label { font-size: 0.8rem; color: #555; margin-bottom: 4px; display: block; }
-  input {
-    width: 100%;
-    padding: 12px;
-    font-size: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    outline: none;
-  }
-  input:focus { border-color: #1a1a1a; }
-  button {
-    width: 100%;
-    padding: 14px;
-    background: #1a1a1a;
-    color: #fff;
-    font-size: 1rem;
-    font-weight: 700;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-top: 4px;
-  }
-  button:active { opacity: 0.8; }
-  .result {
-    background: #1a1a1a;
-    color: #fff;
-    padding: 20px 16px;
-    border-radius: 0 0 12px 12px;
-    display: none;
-  }
-  .result.show { display: block; }
-  .result-label { font-size: 0.75rem; color: #aaa; margin-bottom: 4px; }
-  .result-value { font-size: 1.8rem; font-weight: 700; margin-bottom: 16px; }
-  .result-sub { font-size: 0.85rem; color: #ccc; line-height: 1.8; }
-  .result-sub span { color: #fff; font-weight: 600; }
-  .back { display: block; text-align: center; margin-top: 16px; font-size: 0.85rem; color: #888; text-decoration: none; }
-  .back:hover { color: #333; }
 </style>
 </head>
 <body>
-<div class="container">
-  <header>
-    <h1>ボーナス計算ツール</h1>
-    <p>月給 × 支給倍率でボーナス額を試算</p>
-  </header>
 
-  <div class="card">
-    <div>
-      <label>月給（円）</label>
-      <input type="number" id="salary" inputmode="numeric" placeholder="例：300000">
-    </div>
-    <div>
-      <label>支給倍率</label>
-      <input type="number" id="multiplier" inputmode="decimal" placeholder="例：2.5">
-    </div>
-    <button onclick="calculate()">計算する</button>
-  </div>
+<h1>アプリ一覧</h1>
 
-  <div class="result" id="result">
-    <div class="result-label">ボーナス額</div>
-    <div class="result-value" id="bonus"></div>
-    <div class="result-sub" id="breakdown"></div>
-  </div>
+<a class="card" href="discount.html">割引計算</a>
+<a class="card" href="hourly.html">時給計算</a>
+<a class="card" href="warikan.html">割り勘</a>
+<a class="card" href="tax.html">消費税</a>
+<a class="card" href="net.html">手取り</a>
+<a class="card" href="loan.html">ローン</a>
 
-  <a class="back" href="index.html">← アプリ一覧に戻る</a>
-</div>
-
-<script>
-  const STORAGE_KEY = 'bonus_v1';
-
-  function calculate() {
-    const salary     = parseFloat(document.getElementById('salary').value);
-    const multiplier = parseFloat(document.getElementById('multiplier').value);
-
-    if ([salary, multiplier].some(v => isNaN(v) || v <= 0)) {
-      alert('すべての項目に正の数値を入力してください');
-      return;
-    }
-
-    const bonus  = Math.round(salary * multiplier);
-    const annual = bonus * 2;
-
-    document.getElementById('bonus').textContent = bonus.toLocaleString() + ' 円';
-    document.getElementById('breakdown').innerHTML =
-      '月給：<span>' + salary.toLocaleString() + ' 円</span><br>' +
-      '支給倍率：<span>' + multiplier + ' ヶ月分</span><br>' +
-      '年2回想定：<span>' + annual.toLocaleString() + ' 円</span>';
-
-    document.getElementById('result').classList.add('show');
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ salary, multiplier }));
-  }
-
-  function load() {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return;
-    const d = JSON.parse(saved);
-    document.getElementById('salary').value     = d.salary;
-    document.getElementById('multiplier').value = d.multiplier;
-  }
-
-  load();
-</script>
 </body>
 </html>
