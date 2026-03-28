@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>住民税シミュレーター</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+    min-height: 100vh;
+  }
+  .container { width: 100%; max-width: 480px; }
+  header {
+    background: #1a1a1a;
+    color: #fff;
+    text-align: center;
+    padding: 20px 16px 16px;
+    border-radius: 12px 12px 0 0;
+  }
+  header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: 0.05em; }
+  header p { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
+  .card {
+    background: #fff;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  label { font-size: 0.8rem; color: #555; margin-bottom: 4px; display: block; }
+  input {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+  }
+  input:focus { border-color: #1a1a1a; }
+  button {
+    width: 100%;
+    padding: 14px;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  button:active { opacity: 0.8; }
+  .result {
+    background: #1a1a1a;
+    color: #fff;
+    padding: 20px 16px;
+    border-radius: 0 0 12px 12px;
+    display: none;
+  }
+  .result.show { display: block; }
+  .result-label { font-size: 0.75rem; color: #aaa; margin-bottom: 4px; }
+  .result-value { font-size: 1.8rem; font-weight: 700; margin-bottom: 16px; }
+  .result-sub { font-size: 0.85rem; color: #ccc; line-height: 1.8; }
+  .result-sub span { color: #fff; font-weight: 600; }
+  .back { display: block; text-align: center; margin-top: 16px; font-size: 0.85rem; color: #888; text-decoration: none; }
+  .back:hover { color: #333; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>住民税シミュレーター</h1>
+    <p>年収から住民税の目安を試算</p>
+  </header>
+
+  <div class="card">
+    <div>
+      <label>年収（円）</label>
+      <input type="number" id="income" inputmode="numeric" placeholder="例：4000000">
+    </div>
+    <button onclick="calculate()">計算する</button>
+  </div>
+
+  <div class="result" id="result">
+    <div class="result-label">住民税の目安（年収 × 10%）</div>
+    <div class="result-value" id="taxAmount"></div>
+    <div class="result-sub" id="breakdown"></div>
+  </div>
+
+  <a class="back" href="index.html">← アプリ一覧に戻る</a>
+</div>
+
+<script>
+  const STORAGE_KEY = 'resident_tax_v1';
+
+  function calculate() {
+    const income = parseFloat(document.getElementById('income').value);
+
+    if (isNaN(income) || income <= 0) {
+      alert('年収に正の数値を入力してください');
+      return;
+    }
+
+    const taxAmount = Math.round(income * 0.1);
+    const monthly   = Math.round(taxAmount / 12);
+
+    document.getElementById('taxAmount').textContent = taxAmount.toLocaleString() + ' 円';
+    document.getElementById('breakdown').innerHTML =
+      '年収：<span>' + income.toLocaleString() + ' 円</span><br>' +
+      '月割り：<span>' + monthly.toLocaleString() + ' 円 / 月</span>';
+
+    document.getElementById('result').classList.add('show');
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ income }));
+  }
+
+  function load() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+    document.getElementById('income').value = JSON.parse(saved).income;
+  }
+
+  load();
+</script>
+</body>
+</html>
