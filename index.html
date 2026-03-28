@@ -3,303 +3,135 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>アプリ一覧</title>
+<title>ボーナス計算ツール</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-  background: #f5f5f3;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-bottom: 48px;
-}
-
-header {
-  width: 100%;
-  background: #1a1a1a;
-  color: #fff;
-  padding: 28px 20px 22px;
-  text-align: center;
-}
-header h1 { font-size: 22px; font-weight: 700; letter-spacing: 1px; }
-header p  { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 6px; }
-
-.list {
-  width: 100%;
-  max-width: 480px;
-  padding: 20px 16px 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  text-decoration: none;
-  color: inherit;
-  transition: transform 0.12s, box-shadow 0.12s;
-}
-.card:active { transform: scale(0.98); box-shadow: 0 1px 8px rgba(0,0,0,0.08); }
-
-.icon {
-  font-size: 32px;
-  width: 56px;
-  height: 56px;
-  background: #f5f5f3;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.info { flex: 1; }
-.info h2 { font-size: 16px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
-.info p  { font-size: 12px; color: #999; line-height: 1.5; }
-
-.arrow {
-  font-size: 18px;
-  color: #ccc;
-  flex-shrink: 0;
-}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+    min-height: 100vh;
+  }
+  .container { width: 100%; max-width: 480px; }
+  header {
+    background: #1a1a1a;
+    color: #fff;
+    text-align: center;
+    padding: 20px 16px 16px;
+    border-radius: 12px 12px 0 0;
+  }
+  header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: 0.05em; }
+  header p { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
+  .card {
+    background: #fff;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  label { font-size: 0.8rem; color: #555; margin-bottom: 4px; display: block; }
+  input {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+  }
+  input:focus { border-color: #1a1a1a; }
+  button {
+    width: 100%;
+    padding: 14px;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  button:active { opacity: 0.8; }
+  .result {
+    background: #1a1a1a;
+    color: #fff;
+    padding: 20px 16px;
+    border-radius: 0 0 12px 12px;
+    display: none;
+  }
+  .result.show { display: block; }
+  .result-label { font-size: 0.75rem; color: #aaa; margin-bottom: 4px; }
+  .result-value { font-size: 1.8rem; font-weight: 700; margin-bottom: 16px; }
+  .result-sub { font-size: 0.85rem; color: #ccc; line-height: 1.8; }
+  .result-sub span { color: #fff; font-weight: 600; }
+  .back { display: block; text-align: center; margin-top: 16px; font-size: 0.85rem; color: #888; text-decoration: none; }
+  .back:hover { color: #333; }
 </style>
 </head>
 <body>
+<div class="container">
+  <header>
+    <h1>ボーナス計算ツール</h1>
+    <p>月給 × 支給倍率でボーナス額を試算</p>
+  </header>
 
-<header>
-  <h1>アプリ一覧</h1>
-  <p>使いたいアプリをタップしてください</p>
-</header>
-
-<div class="list">
-
-  <a class="card" href="discount.html">
-    <div class="icon">🏷️</div>
-    <div class="info">
-      <h2>割引計算</h2>
-      <p>元の金額と割引率から<br>割引後の金額を計算</p>
+  <div class="card">
+    <div>
+      <label>月給（円）</label>
+      <input type="number" id="salary" inputmode="numeric" placeholder="例：300000">
     </div>
-    <div class="arrow">›</div>
-  </a>
-
-  <a class="card" href="hourly.html">
-    <div class="icon">⏱️</div>
-    <div class="info">
-      <h2>時給計算</h2>
-      <p>時給・労働時間・日数から<br>月収を自動計算</p>
+    <div>
+      <label>支給倍率</label>
+      <input type="number" id="multiplier" inputmode="decimal" placeholder="例：2.5">
     </div>
-    <div class="arrow">›</div>
-  </a>
-<a class="card" href="warikan.html">
-  <div class="icon">💰</div>
-  <div class="info">
-    <h2>割り勘計算</h2>
-    <p>合計金額と人数から<br>1人あたりを計算</p>
-  </div>
-  <div class="arrow">›</div>
-</a>
-  <a class="card" href="tax.html">
-  <div class="icon">🧾</div>
-  <div class="info">
-    <h2>消費税計算</h2>
-    <p>税込価格と税率から<br>税抜価格と税額を計算</p>
-  </div>
-  <div class="arrow">›</div>
-</a>
-  <a class="card" href="net.html">
-  <div class="icon">💴</div>
-  <div class="info">
-    <h2>手取り計算</h2>
-    <p>月収と控除率から<br>手取り額を計算</p>
-  </div>
-  <div class="arrow">›</div>
-</a>
-  <a class="card" href="loan.html">
-  <div class="icon">🏠</div>
-  <div class="info">
-    <h2>ローン返済計算</h2>
-    <p>借入金額・年利・年数から<br>毎月返済額を計算</p>
-  </div>
-  <div class="arrow">›</div>
-</a>
-<a href="annual-hourly.html" class="card">
-  <div class="icon">💰</div>
-  <div class="info">
-    <h2>年収→時給</h2>
-    <p>年収から時給を計算</p>
-  </div>
-  <div class="arrow">›</div>
-</a>
- <a href="percentage.html" class="card">
-  <div class="icon">📊</div>
-  <div class="info">
-    <h2>割合計算</h2>
-    <p>数値から割合を計算</p>
-  </div>
-  <div class="arrow">›</div>
-</a>
-  <a href="percent-change.html" class="card">
-  <div class="icon">📈</div>
-  <div class="info">
-    <h2>増減率計算</h2>
-    <p>数値の増減を％で計算</p>
-  </div>
-  <div class="arrow">›</div>
-</a>
-  <a href="tax-reverse.html" class="card">
-  <div class="icon">💸</div>
-  <div class="info">
-    <h2>税込→税抜</h2>
-    <p>税込価格から税抜を計算</p>
-  </div>
-  <div class="arrow">›</div>
-</a>
-  <a href="yield.html" class="card">
-  <div class="icon">📈</div>
-  <div class="info">
-    <h2>利回り計算</h2>
-    <p>投資金額から利回りを計算</p>
-  </div>
-  <div class="arrow">›</div>
-</a>
-  <a href="days.html" class="card">
-  <div class="icon">📅</div>
-  <div class="info">
-    <h2>日数カウント</h2>
-    <p>2つの日付の差を計算</p>
-  </div>
-  <div class="arrow">›</div>
-</a>
-  <a href="compound.html" class="card">
-  <div class="icon">📊</div>
-  <div class="info">
-    <h2>複利計算</h2>
-    <p>資産の増え方をシミュレーション</p>
-  </div>
-  <div class="arrow">›</div>
-</a>
-  <a href="loan-limit.html" class="card">
-  <div class="icon">🏦</div>
-  <div class="info">
-    <h2>借入可能額</h2>
-    <p>借りられる金額を計算</p>
-  </div>
-  <div class="arrow">›</div>
-</a>
-  <a href="overtime.html" class="card">
-  <div class="icon">💼</div>
-  <div class="info">
-    <h2>残業代計算</h2>
-    <p>残業代を自動計算</p>
-  </div>
-  <div class="arrow">›</div>
-</a>
-  <a href="card-split.html" class="card">
-  <div class="icon">💳</div>
-  <div class="info">
-    <h2>分割払い計算</h2>
-    <p>クレカ分割の支払額を計算</p>
-  </div>
-  <div class="arrow">›</div>
-</a>
-  <a href="net-to-gross.html" class="card">
-  <div class="icon">💰</div>
-  <div class="info">
-    <h2>手取り→年収</h2>
-    <p>手取りから年収を逆算</p>
-  </div>
-  <div class="arrow">›</div>
-</a>
-  <a href="rent.html" class="card">
-  <div class="icon">🏠</div>
-  <div class="info">
-    <h2>家賃目安</h2>
-    <p>適正な家賃を計算</p>
-  </div>
-  <div class="arrow">›</div>
-</a>
-  <a href="saving.html" class="card">
-  <div class="icon">💰</div>
-  <div class="info">
-    <h2>貯金ペース</h2>
-    <p>何ヶ月で貯まるか計算</p>
-  </div>
-  <div class="arrow">›</div>
-</a>
-  <a href="side-income.html" class="card">
-  <div class="icon">💻</div>
-  <div class="info">
-    <h2>副業収入</h2>
-    <p>副業の月収を計算</p>
-  </div>
-  <div class="arrow">›</div>
-</a><a href="monthly-invest.html" class="card">
-  <div class="icon">📈</div>
-  <div class="info">
-    <h2>毎月積立</h2>
-    <p>積立投資の最終金額を計算</p>
-  </div>
-  <div class="arrow">›</div>
-</a>
-  <a href="nisa.html" class="card">
-  <div class="icon">📊</div>
-  <div class="info">
-    <h2>つみたてNISA</h2>
-    <p>資産運用シミュレーション</p>
-  </div>
-  <div class="arrow">›</div>
-</a>
-  <a href="tax-return.html" class="card">
-  <div class="icon">🧾</div>
-  <div class="info">
-    <h2>確定申告</h2>
-    <p>税額の目安を計算</p>
-  </div>
-  <div class="arrow">›</div>
-</a>
-  <a href="resident-tax.html" class="card">
-  <div class="icon">🏛️</div>
-  <div class="info">
-    <h2>住民税</h2>
-    <p>住民税の目安を計算</p>
-  </div>
-  <div class="arrow">›</div>
-</a>
-  <a href="income-tax.html" class="card">
-  <div class="icon">📄</div>
-  <div class="info">
-    <h2>所得税</h2>
-    <p>所得税の目安を計算</p>
-  </div>
-  <div class="arrow">›</div>
-</a>
-  <a href="daily-pay.html" class="card">
-  <div class="icon">📅</div>
-  <div class="info">
-    <h2>日割り給与</h2>
-    <p>日割りの給料を計算</p>
-  </div>
-  <div class="arrow">›</div>
-</a>
-  <a href="bonus.html" class="card">
-  <div class="icon">🎁</div>
-  <div class="info">
-    <h2>ボーナス計算</h2>
-    <p>ボーナス額を計算</p>
-  </div>
-  <div class="arrow">›</div>
-</a>
-  
+    <button onclick="calculate()">計算する</button>
   </div>
 
+  <div class="result" id="result">
+    <div class="result-label">ボーナス額</div>
+    <div class="result-value" id="bonus"></div>
+    <div class="result-sub" id="breakdown"></div>
+  </div>
+
+  <a class="back" href="index.html">← アプリ一覧に戻る</a>
+</div>
+
+<script>
+  const STORAGE_KEY = 'bonus_v1';
+
+  function calculate() {
+    const salary     = parseFloat(document.getElementById('salary').value);
+    const multiplier = parseFloat(document.getElementById('multiplier').value);
+
+    if ([salary, multiplier].some(v => isNaN(v) || v <= 0)) {
+      alert('すべての項目に正の数値を入力してください');
+      return;
+    }
+
+    const bonus  = Math.round(salary * multiplier);
+    const annual = bonus * 2;
+
+    document.getElementById('bonus').textContent = bonus.toLocaleString() + ' 円';
+    document.getElementById('breakdown').innerHTML =
+      '月給：<span>' + salary.toLocaleString() + ' 円</span><br>' +
+      '支給倍率：<span>' + multiplier + ' ヶ月分</span><br>' +
+      '年2回想定：<span>' + annual.toLocaleString() + ' 円</span>';
+
+    document.getElementById('result').classList.add('show');
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ salary, multiplier }));
+  }
+
+  function load() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+    const d = JSON.parse(saved);
+    document.getElementById('salary').value     = d.salary;
+    document.getElementById('multiplier').value = d.multiplier;
+  }
+
+  load();
+</script>
 </body>
 </html>
