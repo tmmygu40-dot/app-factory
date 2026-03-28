@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>手取り→年収逆算</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background: #f5f5f3;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 56px;
+}
+
+header {
+  width: 100%;
+  background: #1a1a1a;
+  color: #fff;
+  padding: 24px 20px 18px;
+  text-align: center;
+}
+header h1 { font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+header p  { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 5px; }
+
+.card {
+  width: 100%;
+  max-width: 480px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 20px;
+  margin: 20px 16px 0;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+}
+
+.field { margin-bottom: 20px; }
+.field:last-child { margin-bottom: 0; }
+
+.field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #999;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.input-wrap { position: relative; }
+
+.input-wrap input {
+  width: 100%;
+  padding: 14px 48px 14px 16px;
+  font-size: 20px;
+  font-weight: 700;
+  border: 2px solid #ebebeb;
+  border-radius: 12px;
+  outline: none;
+  background: #fafaf8;
+  color: #1a1a1a;
+  transition: border-color 0.15s;
+  -moz-appearance: textfield;
+}
+.input-wrap input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.input-wrap input:focus { border-color: #1a1a1a; background: #fff; }
+
+.unit {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  font-weight: 700;
+  color: #bbb;
+  pointer-events: none;
+}
+
+.note {
+  font-size: 11px;
+  color: #bbb;
+  margin-top: 6px;
+}
+
+.calc-btn {
+  width: calc(100% - 32px);
+  max-width: 480px;
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 16px;
+  margin-top: 12px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.calc-btn:hover  { opacity: 0.85; }
+.calc-btn:active { transform: scale(0.98); }
+
+.result-card {
+  display: none;
+  width: calc(100% - 32px);
+  max-width: 480px;
+  background: #1a1a1a;
+  border-radius: 16px;
+  padding: 28px 20px;
+  margin-top: 12px;
+  text-align: center;
+}
+.result-card.show { display: block; }
+
+.result-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.result-main {
+  font-size: 48px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -2px;
+  line-height: 1;
+}
+.result-unit {
+  font-size: 20px;
+  color: rgba(255,255,255,0.5);
+  margin-left: 4px;
+}
+.result-sub {
+  margin-top: 14px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.35);
+  line-height: 1.8;
+}
+
+.back-link {
+  margin-top: 28px;
+  font-size: 13px;
+  color: #aaa;
+  text-decoration: none;
+}
+.back-link:hover { color: #555; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>手取り→年収逆算</h1>
+  <p>手取り月収とボーナスを入力してください</p>
+</header>
+
+<div class="card">
+  <div class="field">
+    <label for="input1">手取り月収</label>
+    <div class="input-wrap">
+      <input type="number" id="input1" min="0" inputmode="numeric" placeholder="200000">
+      <span class="unit">円</span>
+    </div>
+  </div>
+  <div class="field">
+    <label for="input2">ボーナス（年間）</label>
+    <div class="input-wrap">
+      <input type="number" id="input2" min="0" inputmode="numeric" placeholder="0" value="0">
+      <span class="unit">円</span>
+    </div>
+    <div class="note">※ボーナスなしの場合は0のまま</div>
+  </div>
+</div>
+
+<button class="calc-btn" onclick="calculate()">計算する</button>
+
+<div class="result-card" id="result">
+  <div class="result-label">推定年収（額面）</div>
+  <div>
+    <span class="result-main" id="resultMain"></span><span class="result-unit">円</span>
+  </div>
+  <div class="result-sub" id="resultSub"></div>
+</div>
+
+<a class="back-link" href="index.html">← アプリ一覧に戻る</a>
+
+<script>
+const STORAGE_KEY = 'net_to_gross_v1';
+
+function calculate() {
+  const net    = parseFloat(document.getElementById('input1').value);
+  const bonus  = parseFloat(document.getElementById('input2').value) || 0;
+
+  if (!net || net <= 0) {
+    document.getElementById('result').classList.remove('show');
+    return;
+  }
+
+  const grossMonthly = Math.round(net / 0.8);
+  const grossAnnual  = Math.round(grossMonthly * 12 + bonus);
+  const netAnnual    = Math.round(net * 12 + bonus);
+
+  document.getElementById('resultMain').textContent = grossAnnual.toLocaleString();
+  document.getElementById('resultSub').textContent  =
+    `額面月収（推定）： ${grossMonthly.toLocaleString()}円\n` +
+    `手取り年収（推定）： ${netAnnual.toLocaleString()}円\n` +
+    `※簡易計算（控除率20%で算出）`;
+  document.getElementById('result').classList.add('show');
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ val1: net, val2: bonus }));
+}
+
+(function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    if (d.val1) document.getElementById('input1').value = d.val1;
+    if (d.val2 !== undefined) document.getElementById('input2').value = d.val2;
+    if (d.val1) calculate();
+  } catch (e) {}
+})();
+
+document.getElementById('input1').addEventListener('input', calculate);
+document.getElementById('input2').addEventListener('input', calculate);
+</script>
+</body>
+</html>
