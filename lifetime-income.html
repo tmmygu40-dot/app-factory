@@ -1,189 +1,373 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>生涯年収シミュレーター</title>
-
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-  background: #f0f0f0;
-  display: flex;
-  justify-content: center;
-  padding: 16px;
-}
-.container { width: 100%; max-width: 480px; }
-
-header {
-  background: #000;
-  color: #fff;
-  text-align: center;
-  padding: 20px;
-  border-radius: 12px 12px 0 0;
-}
-header h1 { font-size: 1.2rem; }
-
-.card {
-  background: #fff;
-  padding: 20px;
-}
-
-label { font-size: 0.8rem; color: #555; }
-input {
-  width: 100%;
-  padding: 12px;
-  margin: 8px 0 14px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-
-button {
-  width: 100%;
-  padding: 14px;
-  background: #000;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-}
-
-.result {
-  background: #000;
-  color: #fff;
-  padding: 20px;
-  display: none;
-  flex-direction: column;
-  gap: 10px;
-}
-.result.show { display: flex; }
-
-.big {
-  font-size: 1.8rem;
-  font-weight: bold;
-}
-
-.sub {
-  font-size: 0.9rem;
-  color: #ccc;
-}
-
-.milestone {
-  font-size: 0.85rem;
-  line-height: 1.6;
-  margin-top: 10px;
-  border-top: 1px solid #333;
-  padding-top: 10px;
-}
-</style>
-</head>
-
-<body>
-
-<div class="container">
-
-<header>
-<h1>💰 生涯年収シミュレーター</h1>
-</header>
-
-<div class="card">
-<label>現在の年収（円）</label>
-<input type="number" id="income">
-
-<label>昇給率（%）</label>
-<input type="number" id="raise">
-
-<label>現在の年齢</label>
-<input type="number" id="age">
-
-<label>定年年齢</label>
-<input type="number" id="retire">
-
-<button onclick="calc()">計算する</button>
-</div>
-
-<div class="result" id="result">
-<div class="big" id="total"></div>
-<div class="sub" id="summary"></div>
-<div class="milestone" id="milestone"></div>
-
-<button onclick="shareResult()" style="background:#4CAF50;margin-top:10px;">
-📤 シェア
-</button>
-</div>
-
-</div>
-
-<script>
-window.onload = () => {
-  income.value = localStorage.getItem("income") || "";
-  raise.value = localStorage.getItem("raise") || "";
-  age.value = localStorage.getItem("age") || "";
-  retire.value = localStorage.getItem("retire") || "";
-};
-
-function fmtOku(n){
-  const oku = Math.floor(n/100000000);
-  const man = Math.floor((n%100000000)/10000);
-  if(oku>0) return oku+"億"+(man?man+"万":"")+"円";
-  return Math.floor(n/10000)+"万円";
-}
-
-function calc(){
-  const i = Number(income.value);
-  const r = Number(raise.value)/100;
-  const a = Number(age.value);
-  const re = Number(retire.value);
-
-  if(!i||!a||!re){ alert("入力してね"); return;}
-
-  localStorage.setItem("income",i);
-  localStorage.setItem("raise",raise.value);
-  localStorage.setItem("age",a);
-  localStorage.setItem("retire",re);
-
-  const n = re - a;
-  let total = 0;
-
-  for(let y=0;y<n;y++){
-    total += i * Math.pow(1+r,y);
-  }
-
-  totalEl.innerHTML = fmtOku(total);
-  summary.innerHTML = `${n}年間働いた場合`;
-
-  // milestone
-  let m = "";
-  [10,20,30].forEach(y=>{
-    if(y<=n){
-      let sum=0;
-      for(let i2=0;i2<y;i2++){
-        sum += i*Math.pow(1+r,i2);
-      }
-      m += `${y}年で ${fmtOku(sum)}<br>`;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>生涯年収シミュレーター</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      background: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+      min-height: 100vh;
     }
-  });
+    .container {
+      width: 100%;
+      max-width: 480px;
+    }
+    header {
+      background: #1a1a1a;
+      color: #fff;
+      text-align: center;
+      padding: 22px 16px 18px;
+      border-radius: 12px 12px 0 0;
+    }
+    header .emoji {
+      font-size: 2rem;
+      display: block;
+      margin-bottom: 6px;
+    }
+    header h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    header p {
+      font-size: 0.75rem;
+      color: #aaa;
+      margin-top: 4px;
+    }
+    .card {
+      background: #fff;
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .field label {
+      font-size: 0.8rem;
+      color: #555;
+      margin-bottom: 5px;
+      display: block;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      outline: none;
+    }
+    input:focus {
+      border-color: #1a1a1a;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #1a1a1a;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+    button:active {
+      opacity: 0.8;
+    }
+    .share-btn {
+      background: #2f7d32;
+    }
+    .result {
+      background: #1a1a1a;
+      color: #fff;
+      padding: 20px 16px;
+      border-radius: 0 0 12px 12px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .result.show {
+      display: flex;
+    }
+    .result-hero {
+      background: #2a2a2a;
+      border-radius: 10px;
+      padding: 18px 14px;
+      text-align: center;
+    }
+    .result-hero-label {
+      font-size: 0.75rem;
+      color: #aaa;
+      margin-bottom: 6px;
+    }
+    .result-hero-value {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+    }
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .result-cell {
+      background: #2a2a2a;
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .result-cell-label {
+      font-size: 0.7rem;
+      color: #aaa;
+      margin-bottom: 4px;
+    }
+    .result-cell-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .result-sub {
+      font-size: 0.8rem;
+      color: #aaa;
+      line-height: 1.8;
+      border-top: 1px solid #333;
+      padding-top: 10px;
+    }
+    .result-sub span {
+      color: #ccc;
+    }
+    .milestone {
+      background: #2a2a2a;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 0.9rem;
+      line-height: 1.8;
+    }
+    .milestone-title {
+      font-size: 0.75rem;
+      color: #aaa;
+      margin-bottom: 6px;
+    }
+    .back {
+      display: block;
+      text-align: center;
+      margin-top: 16px;
+      font-size: 0.85rem;
+      color: #888;
+      text-decoration: none;
+    }
+    .back:hover {
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <span class="emoji">💰</span>
+      <h1>生涯年収シミュレーター</h1>
+      <p>今の年収から一生分の収入を試算</p>
+    </header>
 
-  milestone.innerHTML = m;
+    <div class="card">
+      <div class="field">
+        <label>現在の年収（円）</label>
+        <input type="number" id="income" inputmode="numeric" placeholder="例：4000000">
+      </div>
 
-  result.classList.add("show");
-}
+      <div class="field">
+        <label>年間昇給率（%）</label>
+        <input type="number" id="raise" inputmode="decimal" placeholder="例：2">
+      </div>
 
-function shareResult(){
-  const text = "あなたの生涯年収は " + totalEl.innerText;
+      <div class="field">
+        <label>現在の年齢（歳）</label>
+        <input type="number" id="currentAge" inputmode="numeric" placeholder="例：28">
+      </div>
 
-  if(navigator.share){
-    navigator.share({
-      title:"生涯年収",
-      text:text,
-      url:location.href
-    });
-  }else{
-    navigator.clipboard.writeText(text);
-    alert("コピーしたよ");
-  }
-}
-</script>
+      <div class="field">
+        <label>定年年齢（歳）</label>
+        <input type="number" id="retireAge" inputmode="numeric" placeholder="例：65">
+      </div>
 
+      <button onclick="calculate()">計算する</button>
+    </div>
+
+    <div class="result" id="result">
+      <div class="result-hero">
+        <div class="result-hero-label">生涯総収入</div>
+        <div class="result-hero-value" id="total"></div>
+      </div>
+
+      <div class="result-grid">
+        <div class="result-cell">
+          <div class="result-cell-label">労働年数</div>
+          <div class="result-cell-value" id="years"></div>
+        </div>
+        <div class="result-cell">
+          <div class="result-cell-label">平均年収</div>
+          <div class="result-cell-value" id="avg"></div>
+        </div>
+        <div class="result-cell">
+          <div class="result-cell-label">退職時年収</div>
+          <div class="result-cell-value" id="lastIncome"></div>
+        </div>
+        <div class="result-cell">
+          <div class="result-cell-label">月換算（平均）</div>
+          <div class="result-cell-value" id="monthly"></div>
+        </div>
+      </div>
+
+      <div class="result-sub" id="note"></div>
+
+      <div class="milestone" id="milestoneBox">
+        <div class="milestone-title">何年目でどれくらい？</div>
+        <div id="milestone"></div>
+      </div>
+
+      <button class="share-btn" onclick="shareResult()">📤 結果をシェア</button>
+    </div>
+
+    <a class="back" href="index.html">← アプリ一覧に戻る</a>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "lifetime_income_v2";
+
+    function fmtOku(n) {
+      const oku = Math.floor(n / 100000000);
+      const man = Math.floor((n % 100000000) / 10000);
+      if (oku > 0) {
+        return oku + "億" + (man > 0 ? man + "万" : "") + "円";
+      }
+      return Math.floor(n / 10000) + "万円";
+    }
+
+    function calcCumulative(income, rate, years) {
+      let sum = 0;
+      for (let i = 0; i < years; i++) {
+        sum += income * Math.pow(1 + rate, i);
+      }
+      return sum;
+    }
+
+    function getMilestoneYears(totalYears) {
+      const list = [];
+
+      if (10 <= totalYears) list.push(10);
+      if (20 <= totalYears) list.push(20);
+      if (30 <= totalYears) list.push(30);
+
+      if (!list.includes(totalYears)) {
+        list.push(totalYears);
+      }
+
+      return list;
+    }
+
+    function calculate() {
+      const income = parseFloat(document.getElementById("income").value);
+      const raise = parseFloat(document.getElementById("raise").value);
+      const currentAge = parseFloat(document.getElementById("currentAge").value);
+      const retireAge = parseFloat(document.getElementById("retireAge").value);
+
+      if ([income, raise, currentAge, retireAge].some(v => isNaN(v))) {
+        alert("すべての項目を入力してください");
+        return;
+      }
+
+      if (currentAge >= retireAge) {
+        alert("定年年齢は現在の年齢より大きくしてください");
+        return;
+      }
+
+      if (income <= 0 || currentAge <= 0 || retireAge <= 0) {
+        alert("正の数値を入力してください");
+        return;
+      }
+
+      const years = retireAge - currentAge;
+      const rate = raise / 100;
+
+      let total;
+      if (rate === 0) {
+        total = income * years;
+      } else {
+        total = income * (Math.pow(1 + rate, years) - 1) / rate;
+      }
+
+      const lastIncome = income * Math.pow(1 + rate, years - 1);
+      const avg = total / years;
+      const monthly = avg / 12;
+
+      document.getElementById("total").textContent = fmtOku(Math.round(total));
+      document.getElementById("years").textContent = years + "年";
+      document.getElementById("avg").textContent = Math.round(avg / 10000) + "万円";
+      document.getElementById("lastIncome").textContent = Math.round(lastIncome / 10000) + "万円";
+      document.getElementById("monthly").textContent = Math.round(monthly / 10000) + "万円";
+
+      document.getElementById("note").innerHTML =
+        "現在年収 <span>" + Math.round(income / 10000) + "万円</span> から昇給率 <span>" +
+        raise + "%</span> で <span>" + years + "年</span> 働いた場合の試算です。税引き前の概算値です。";
+
+      const milestoneYears = getMilestoneYears(years);
+      let milestoneHtml = "";
+
+      milestoneYears.forEach(function(y) {
+        const val = calcCumulative(income, rate, y);
+        const ageAtThatTime = currentAge + y;
+        milestoneHtml += y + "年目（" + ageAtThatTime + "歳ごろ）： " + fmtOku(Math.round(val)) + "<br>";
+      });
+
+      document.getElementById("milestone").innerHTML = milestoneHtml;
+      document.getElementById("result").classList.add("show");
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        income,
+        raise,
+        currentAge,
+        retireAge
+      }));
+    }
+
+    function shareResult() {
+      const total = document.getElementById("total").innerText;
+      if (!total) {
+        alert("先に計算してね");
+        return;
+      }
+
+      const text = "あなたの生涯年収は " + total + " です。";
+
+      if (navigator.share) {
+        navigator.share({
+          title: "生涯年収シミュレーター",
+          text: text,
+          url: location.href
+        });
+      } else {
+        navigator.clipboard.writeText(text + " " + location.href);
+        alert("結果をコピーしたよ");
+      }
+    }
+
+    function load() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return;
+
+      const d = JSON.parse(saved);
+      document.getElementById("income").value = d.income || "";
+      document.getElementById("raise").value = d.raise || "";
+      document.getElementById("currentAge").value = d.currentAge || "";
+      document.getElementById("retireAge").value = d.retireAge || "";
+    }
+
+    load();
+  </script>
 </body>
 </html>
