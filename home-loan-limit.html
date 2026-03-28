@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>住宅ローン借入可能額シミュレーター</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+    min-height: 100vh;
+  }
+  .container { width: 100%; max-width: 480px; }
+  header {
+    background: #1a1a1a;
+    color: #fff;
+    text-align: center;
+    padding: 22px 16px 18px;
+    border-radius: 12px 12px 0 0;
+  }
+  header .emoji { font-size: 2rem; display: block; margin-bottom: 6px; }
+  header h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: 0.04em; }
+  header p { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
+  .card {
+    background: #fff;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .field label { font-size: 0.8rem; color: #555; margin-bottom: 5px; display: block; }
+  .field .sublabel { font-size: 0.72rem; color: #aaa; margin-bottom: 5px; display: block; }
+  input[type="number"] {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+  }
+  input[type="number"]:focus { border-color: #1a1a1a; }
+  .preset-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .preset-row button {
+    flex: 1;
+    padding: 8px 4px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .preset-row button.active {
+    border-color: #1a1a1a;
+    background: #1a1a1a;
+    color: #fff;
+  }
+  .btn-calc {
+    width: 100%;
+    padding: 15px;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .btn-calc:active { opacity: 0.8; }
+  .btn-reset {
+    width: 100%;
+    padding: 11px;
+    background: #fff;
+    color: #888;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .btn-reset:active { background: #f5f5f5; }
+  .error-msg {
+    background: #fff0f0;
+    color: #c0392b;
+    font-size: 0.82rem;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #f5c6c6;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+  .result {
+    background: #1a1a1a;
+    color: #fff;
+    padding: 20px 16px;
+    border-radius: 0 0 12px 12px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .result.show { display: flex; }
+  .result-hero {
+    background: #2a2a2a;
+    border-radius: 10px;
+    padding: 20px 14px;
+    text-align: center;
+  }
+  .result-hero-label { font-size: 0.75rem; color: #aaa; margin-bottom: 6px; }
+  .result-hero-value { font-size: 2.2rem; font-weight: 700; color: #fff; line-height: 1.2; }
+  .result-hero-sub { font-size: 0.78rem; color: #aaa; margin-top: 8px; }
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .result-cell {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .result-cell-label { font-size: 0.7rem; color: #aaa; margin-bottom: 4px; }
+  .result-cell-value { font-size: 1.05rem; font-weight: 700; color: #fff; }
+  .result-comment {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 13px 14px;
+    font-size: 0.82rem;
+    color: #ccc;
+    line-height: 1.7;
+  }
+  .result-comment .comment-label { font-size: 0.7rem; color: #aaa; margin-bottom: 4px; }
+  .result-comment .comment-text { color: #fff; font-weight: 600; }
+  .notice {
+    font-size: 0.72rem;
+    color: #666;
+    line-height: 1.6;
+    border-top: 1px solid #333;
+    padding-top: 10px;
+  }
+  .back { display: block; text-align: center; margin-top: 16px; font-size: 0.85rem; color: #888; text-decoration: none; }
+  .back:hover { color: #333; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <span class="emoji">🏦</span>
+    <h1>住宅ローン借入可能額シミュレーター</h1>
+    <p>年収・返済負担率から借入可能額を試算</p>
+  </header>
+
+  <div class="card">
+    <div class="field">
+      <label>年収（円）</label>
+      <input type="number" id="income" inputmode="numeric" placeholder="例：5000000">
+    </div>
+    <div class="field">
+      <label>返済負担率（%）</label>
+      <span class="sublabel">年収に対する年間返済額の割合。一般的な目安は25〜30%</span>
+      <input type="number" id="debtRatio" inputmode="decimal" placeholder="例：25" value="25">
+      <div class="preset-row" id="ratioGroup">
+        <button onclick="setRatio(this, 20)">20%</button>
+        <button onclick="setRatio(this, 25)" class="active">25%</button>
+        <button onclick="setRatio(this, 30)">30%</button>
+        <button onclick="setRatio(this, 35)">35%</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>年利（%）</label>
+      <input type="number" id="rate" inputmode="decimal" placeholder="例：1.5">
+    </div>
+    <div class="field">
+      <label>返済年数（年）</label>
+      <input type="number" id="years" inputmode="numeric" placeholder="例：35">
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+    <button class="btn-calc" onclick="calculate()">計算する</button>
+    <button class="btn-reset" onclick="resetAll()">リセット</button>
+  </div>
+
+  <div class="result" id="result">
+    <div class="result-hero">
+      <div class="result-hero-label">借入可能額の目安</div>
+      <div class="result-hero-value" id="loanLimit"></div>
+      <div class="result-hero-sub" id="heroSub"></div>
+    </div>
+    <div class="result-grid">
+      <div class="result-cell">
+        <div class="result-cell-label">毎月返済額</div>
+        <div class="result-cell-value" id="monthlyPayment"></div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">年間返済額</div>
+        <div class="result-cell-value" id="annualPayment"></div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">返済負担率</div>
+        <div class="result-cell-value" id="ratioDisp"></div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">返済期間</div>
+        <div class="result-cell-value" id="yearsDisp"></div>
+      </div>
+    </div>
+    <div class="result-comment">
+      <div class="comment-label">無理のない返済ラインの目安</div>
+      <div class="comment-text" id="commentText"></div>
+    </div>
+    <div class="notice">
+      ※ これは一般向けの簡易シミュレーションです。実際の借入可能額は金融機関の審査・諸条件により異なります。正式な金額は金融機関にお問い合わせください。
+    </div>
+  </div>
+
+  <a class="back" href="index.html">← アプリ一覧に戻る</a>
+</div>
+
+<script>
+  function setRatio(btn, val) {
+    document.getElementById('debtRatio').value = val;
+    document.querySelectorAll('#ratioGroup button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function fmt(n) { return Math.round(n).toLocaleString() + ' 円'; }
+  function fmtMan(n) {
+    const oku = Math.floor(n / 100000000);
+    const man = Math.floor((n % 100000000) / 10000);
+    if (oku > 0) return oku + '億' + (man > 0 ? man + '万' : '') + '円';
+    return Math.floor(n / 10000) + '万円';
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+  function hideError() { document.getElementById('errorMsg').classList.remove('show'); }
+
+  function calculate() {
+    hideError();
+    const income    = parseFloat(document.getElementById('income').value);
+    const debtRatio = parseFloat(document.getElementById('debtRatio').value);
+    const rate      = parseFloat(document.getElementById('rate').value);
+    const years     = parseFloat(document.getElementById('years').value);
+
+    if (isNaN(income)    || income    <= 0) { showError('年収を正しく入力してください'); return; }
+    if (isNaN(debtRatio) || debtRatio <= 0 || debtRatio >= 100) { showError('返済負担率を1〜99の間で入力してください'); return; }
+    if (isNaN(rate)      || rate      <= 0) { showError('年利を正しく入力してください'); return; }
+    if (isNaN(years)     || years     <= 0) { showError('返済年数を正しく入力してください'); return; }
+
+    const annualPayment  = income * debtRatio / 100;
+    const monthlyPayment = annualPayment / 12;
+    const r = rate / 100 / 12;
+    const n = years * 12;
+
+    let loanLimit;
+    if (r === 0) {
+      loanLimit = monthlyPayment * n;
+    } else {
+      loanLimit = monthlyPayment * (Math.pow(1 + r, n) - 1) / (r * Math.pow(1 + r, n));
+    }
+
+    document.getElementById('loanLimit').textContent    = fmtMan(Math.round(loanLimit));
+    document.getElementById('heroSub').textContent      = '（元利均等返済 / 年利' + rate + '% / ' + years + '年）';
+    document.getElementById('monthlyPayment').textContent = fmt(monthlyPayment);
+    document.getElementById('annualPayment').textContent  = fmt(annualPayment);
+    document.getElementById('ratioDisp').textContent      = debtRatio + '%';
+    document.getElementById('yearsDisp').textContent      = years + ' 年';
+
+    let comment;
+    if (debtRatio <= 20) {
+      comment = '返済負担率20%以下は余裕のある返済ラインです。生活費・教育費・老後資金も確保しやすい水準です。';
+    } else if (debtRatio <= 25) {
+      comment = '返済負担率25%は一般的に「無理のない目安」とされています。急な出費にも対応できる水準です。';
+    } else if (debtRatio <= 30) {
+      comment = '返済負担率30%はギリギリ許容範囲とされますが、生活費の変動に注意が必要です。';
+    } else {
+      comment = '返済負担率35%超は家計を圧迫しやすい水準です。収入増加・繰り上げ返済の計画を立てることをおすすめします。';
+    }
+    document.getElementById('commentText').textContent = comment;
+
+    document.getElementById('result').classList.add('show');
+  }
+
+  function resetAll() {
+    document.getElementById('income').value    = '';
+    document.getElementById('debtRatio').value = '25';
+    document.getElementById('rate').value      = '';
+    document.getElementById('years').value     = '';
+    document.querySelectorAll('#ratioGroup button').forEach((b, i) => {
+      b.classList.toggle('active', i === 1);
+    });
+    document.getElementById('result').classList.remove('show');
+    hideError();
+  }
+</script>
+</body>
+</html>
