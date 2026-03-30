@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>サボり損失いくら？</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+    min-height: 100vh;
+  }
+  .container { width: 100%; max-width: 480px; }
+  header {
+    background: #1a1a1a;
+    color: #fff;
+    text-align: center;
+    padding: 22px 16px 18px;
+    border-radius: 12px 12px 0 0;
+  }
+  header .emoji { font-size: 2rem; display: block; margin-bottom: 6px; }
+  header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: 0.04em; }
+  header p { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
+  .card {
+    background: #fff;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .field label { font-size: 0.8rem; color: #555; margin-bottom: 5px; display: block; }
+  .field .sublabel { font-size: 0.72rem; color: #aaa; margin-bottom: 5px; display: block; }
+  input[type="number"] {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+  }
+  input[type="number"]:focus { border-color: #1a1a1a; }
+  .btn-calc {
+    width: 100%;
+    padding: 15px;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .btn-calc:active { opacity: 0.8; }
+  .btn-reset {
+    width: 100%;
+    padding: 11px;
+    background: #fff;
+    color: #888;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .btn-reset:active { background: #f5f5f5; }
+  .error-msg {
+    background: #fff0f0;
+    color: #c0392b;
+    font-size: 0.82rem;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #f5c6c6;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+  .result {
+    background: #1a1a1a;
+    color: #fff;
+    padding: 24px 16px 20px;
+    border-radius: 0 0 12px 12px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+  .result.show { display: flex; }
+  .result-hero {
+    background: #2a1a1a;
+    border: 1px solid #5a2a2a;
+    border-radius: 12px;
+    padding: 22px 14px;
+  }
+  .result-hero-label { font-size: 0.8rem; color: #e88; margin-bottom: 8px; letter-spacing: 0.04em; }
+  .result-hero-value {
+    font-size: 3.6rem;
+    font-weight: 700;
+    color: #ff6b6b;
+    line-height: 1;
+    letter-spacing: -2px;
+  }
+  .result-hero-unit { font-size: 1.3rem; color: #ff9999; margin-left: 4px; }
+  .result-hero-sub { font-size: 0.8rem; color: #aaa; margin-top: 8px; }
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .result-cell {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 14px 10px;
+  }
+  .result-cell-label { font-size: 0.7rem; color: #aaa; margin-bottom: 6px; }
+  .result-cell-value { font-size: 1.2rem; font-weight: 700; color: #fff; line-height: 1.2; }
+  .result-cell-value.red    { color: #ff6b6b; }
+  .result-cell-value.orange { color: #f39c12; }
+  .result-breakdown {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 13px 14px;
+    text-align: left;
+  }
+  .breakdown-label { font-size: 0.7rem; color: #aaa; margin-bottom: 10px; }
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    color: #ccc;
+    padding: 5px 0;
+    border-bottom: 1px solid #333;
+  }
+  .breakdown-row:last-child { border-bottom: none; }
+  .breakdown-row span { color: #fff; font-weight: 600; }
+  .result-comment {
+    background: #2a1a1a;
+    border: 1px solid #5a2a2a;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 0.88rem;
+    color: #fff;
+    font-weight: 600;
+    line-height: 1.6;
+    text-align: left;
+  }
+  .result-comment .comment-label { font-size: 0.7rem; color: #e88; margin-bottom: 6px; }
+  .result-comment .comment-sub   { font-size: 0.78rem; color: #aaa; font-weight: 400; margin-top: 6px; }
+  .notice {
+    font-size: 0.72rem;
+    color: #666;
+    line-height: 1.6;
+    border-top: 1px solid #333;
+    padding-top: 10px;
+    text-align: left;
+  }
+  .back { display: block; text-align: center; margin-top: 16px; font-size: 0.85rem; color: #888; text-decoration: none; }
+  .back:hover { color: #333; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <span class="emoji">😴</span>
+    <h1>サボり損失いくら？</h1>
+    <p>1日のサボり時間が積み重なるとこんな損失に</p>
+  </header>
+
+  <div class="card">
+    <div class="field">
+      <label>年収（円）</label>
+      <input type="number" id="income" inputmode="numeric" placeholder="例：5000000">
+    </div>
+    <div class="field">
+      <label>1日にサボる時間（時間）</label>
+      <span class="sublabel">スマホいじり・ボーッとする時間など</span>
+      <input type="number" id="lazyHours" inputmode="decimal" placeholder="例：1.5">
+    </div>
+    <div class="field">
+      <label>年間の勤務日数（日）</label>
+      <span class="sublabel">未入力の場合は240日で計算</span>
+      <input type="number" id="workDays" inputmode="numeric" placeholder="例：240">
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+    <button class="btn-calc" onclick="calculate()">計算する</button>
+    <button class="btn-reset" onclick="resetAll()">リセット</button>
+  </div>
+
+  <div class="result" id="result">
+    <div class="result-hero">
+      <div class="result-hero-label">😱 10年間の損失額</div>
+      <div>
+        <span class="result-hero-value" id="loss10y"></span><span class="result-hero-unit">円</span>
+      </div>
+      <div class="result-hero-sub" id="heroSub"></div>
+    </div>
+
+    <div class="result-grid">
+      <div class="result-cell">
+        <div class="result-cell-label">1日の損失</div>
+        <div class="result-cell-value orange" id="lossDay"></div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">年間の損失</div>
+        <div class="result-cell-value red" id="lossYear"></div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">時給換算</div>
+        <div class="result-cell-value" id="hourlyRate"></div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">年間サボり時間</div>
+        <div class="result-cell-value" id="totalLazyHours"></div>
+      </div>
+    </div>
+
+    <div class="result-breakdown">
+      <div class="breakdown-label">期間別の累計損失</div>
+      <div class="breakdown-row">1ヶ月  <span id="loss1m"></span></div>
+      <div class="breakdown-row">1年    <span id="loss1y"></span></div>
+      <div class="breakdown-row">3年    <span id="loss3y"></span></div>
+      <div class="breakdown-row">5年    <span id="loss5y"></span></div>
+      <div class="breakdown-row">10年   <span id="loss10yBreak"></span></div>
+    </div>
+
+    <div class="result-comment">
+      <div class="comment-label">💬 ひとこと</div>
+      <div id="commentText"></div>
+      <div class="comment-sub" id="commentSub"></div>
+    </div>
+
+    <div class="notice">
+      ※ 労働時間ベースの試算です。サボり時間＝完全に無価値ではありませんが、習慣的なムダ時間を意識するきっかけとしてご活用ください。
+    </div>
+  </div>
+
+  <a class="back" href="index.html">← アプリ一覧に戻る</a>
+</div>
+
+<script>
+  const STORAGE_KEY = 'lazy_cost_v1';
+
+  function fmt(n) { return Math.round(n).toLocaleString() + ' 円'; }
+  function fmtMan(n) {
+    n = Math.round(n);
+    const oku = Math.floor(n / 100000000);
+    const man = Math.floor((n % 100000000) / 10000);
+    if (oku > 0) return oku + '億' + (man > 0 ? man + '万' : '') + '円';
+    return Math.floor(n / 10000) + '万円';
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+  function hideError() { document.getElementById('errorMsg').classList.remove('show'); }
+
+  function calculate() {
+    hideError();
+    const income     = parseFloat(document.getElementById('income').value);
+    const lazyHours  = parseFloat(document.getElementById('lazyHours').value);
+    const workDaysVal= document.getElementById('workDays').value;
+    const workDays   = workDaysVal === '' ? 240 : parseFloat(workDaysVal);
+
+    if (isNaN(income)    || income    <= 0) { showError('年収を正しく入力してください'); return; }
+    if (isNaN(lazyHours) || lazyHours <= 0) { showError('サボる時間を正しく入力してください'); return; }
+    if (isNaN(workDays)  || workDays  <= 0 || workDays > 365) {
+      showError('勤務日数を正しく入力してください（1〜365）'); return;
+    }
+
+    const totalWorkHours = workDays * 8;
+    const hourlyRate     = income / totalWorkHours;
+    const lossDay        = hourlyRate * lazyHours;
+    const lossYear       = lossDay * workDays;
+    const loss1m         = lossYear / 12;
+    const loss3y         = lossYear * 3;
+    const loss5y         = lossYear * 5;
+    const loss10y        = lossYear * 10;
+    const totalLazyHours = Math.round(lazyHours * workDays);
+
+    document.getElementById('loss10y').textContent        = fmtMan(loss10y).replace('円','');
+    document.getElementById('heroSub').textContent        =
+      '1日' + lazyHours + '時間 × ' + workDays + '日 × 10年間';
+    document.getElementById('lossDay').textContent        = fmt(lossDay);
+    document.getElementById('lossYear').textContent       = fmtMan(lossYear);
+    document.getElementById('hourlyRate').textContent     = Math.round(hourlyRate).toLocaleString() + ' 円/h';
+    document.getElementById('totalLazyHours').textContent = totalLazyHours + ' 時間/年';
+    document.getElementById('loss1m').textContent         = fmt(loss1m);
+    document.getElementById('loss1y').textContent         = fmtMan(lossYear);
+    document.getElementById('loss3y').textContent         = fmtMan(loss3y);
+    document.getElementById('loss5y').textContent         = fmtMan(loss5y);
+    document.getElementById('loss10yBreak').textContent   = fmtMan(loss10y);
+
+    let comment, sub;
+    if (loss10y >= 10000000) {
+      comment = '10年で' + fmtMan(loss10y) + 'の損失。車が買える、旅行に何十回も行ける金額です。';
+      sub     = 'その時間を副業・スキルアップ・投資に使っていたら、人生が変わっていたかもしれません。';
+    } else if (loss10y >= 3000000) {
+      comment = '10年で' + fmtMan(loss10y) + 'の損失。これだけあれば老後資金がかなり違ってきます。';
+      sub     = '1日の習慣を少し変えるだけで、10年後の自分が変わります。';
+    } else {
+      comment = '1日' + lazyHours + '時間のサボりで、年間' + fmtMan(lossYear) + 'の損失になります。';
+      sub     = '小さな積み重ねが大きな差を生みます。その1時間、未来のために使ってみませんか？';
+    }
+    document.getElementById('commentText').textContent = comment;
+    document.getElementById('commentSub').textContent  = sub;
+
+    document.getElementById('result').classList.add('show');
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ income, lazyHours, workDays }));
+  }
+
+  function resetAll() {
+    ['income','lazyHours','workDays'].forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('result').classList.remove('show');
+    hideError();
+  }
+
+  function load() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+    const d = JSON.parse(saved);
+    document.getElementById('income').value     = d.income;
+    document.getElementById('lazyHours').value  = d.lazyHours;
+    document.getElementById('workDays').value   = d.workDays;
+  }
+
+  load();
+</script>
+</body>
+</html>
